@@ -6,7 +6,7 @@ import { useAuth } from "./AuthProvider";
 import AuthModal from "./AuthModal";
 
 export default function Navbar() {
-  const { user, signOut } = useAuth();
+  const { user } = useAuth();
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -36,9 +36,14 @@ export default function Navbar() {
               My Learning
             </Link>
             {user ? (
-              <button onClick={() => signOut()} className="text-white/60 hover:text-white text-sm font-medium transition-colors">
-                Sign Out
-              </button>
+              <Link href="/profile" className="flex items-center gap-2 text-white/80 hover:text-amber text-sm font-medium transition-colors">
+                <div className="w-7 h-7 bg-amber/20 rounded-full flex items-center justify-center">
+                  <span className="text-amber text-xs font-bold">
+                    {(user.displayName || user.email || "U").charAt(0).toUpperCase()}
+                  </span>
+                </div>
+                Account
+              </Link>
             ) : (
               <button onClick={() => setShowAuthModal(true)}
                 className="bg-amber/20 hover:bg-amber/30 text-amber px-4 py-2 rounded-lg text-sm font-semibold transition-colors">
@@ -67,9 +72,9 @@ export default function Navbar() {
               My Learning
             </Link>
             {user ? (
-              <button onClick={() => { signOut(); setMobileOpen(false); }} className="block text-white/60 hover:text-white font-medium transition-colors">
-                Sign Out
-              </button>
+              <Link href="/profile" onClick={() => setMobileOpen(false)} className="block text-white/80 hover:text-amber font-medium transition-colors">
+                My Account
+              </Link>
             ) : (
               <button onClick={() => { setShowAuthModal(true); setMobileOpen(false); }} className="block text-amber font-semibold">
                 Sign In
