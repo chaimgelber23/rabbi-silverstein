@@ -45,7 +45,9 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
     }
     const unsubscribe = onAuthStateChanged(auth, async (u) => {
       setUser(u);
-      if (u) await loadProgressFromFirestore();
+      if (u) {
+        try { await loadProgressFromFirestore(); } catch (e) { console.error("Failed to load progress:", e); }
+      }
       setLoading(false);
     });
     return unsubscribe;
