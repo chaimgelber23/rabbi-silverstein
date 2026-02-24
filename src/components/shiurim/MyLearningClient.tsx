@@ -1,22 +1,88 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { motion } from "framer-motion";
 import Link from "next/link";
 import { useAuth } from "@/components/AuthProvider";
 import AuthModal from "@/components/AuthModal";
-import { getAllProgress, getSeriesProgress, getProgressPercentage, type ShiurProgress } from "@/lib/progress";
+import { getAllProgress, getProgressPercentage } from "@/lib/progress";
 
-const fadeUp = { hidden: { opacity: 0, y: 30 }, visible: { opacity: 1, y: 0, transition: { duration: 0.5 } } };
-const stagger = { visible: { transition: { staggerChildren: 0.08 } } };
-
-interface SeriesWithProgress {
-  seriesSlug: string; seriesName: string; lastListened: string;
-  totalListened: number; lastShiurId: string; progressPercent: number;
+interface SeriesInfo {
+  slug: string;
+  name: string;
+  episodeCount: number;
 }
 
-function formatSeriesName(slug: string): string {
-  return slug.split("-").map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
+interface SeriesWithProgress {
+  slug: string;
+  name: string;
+  episodeCount: number;
+  listenedCount: number;
+  completedCount: number;
+  lastListened: string;
+  lastShiurProgress: number;
+}
+
+interface LearningStats {
+  totalShiurim: number;
+  completedShiurim: number;
+  inProgressShiurim: number;
+  seriesStarted: number;
+  totalMinutes: number;
+}
+
+function computeData(allSeries: SeriesInfo[]) {
+  const all = getAllProgress();
+  const entries = Object.values(all).filter((p) => p.currentTime > 10);
+  const completed = entries.filter((p) => p.completed);
+  const inProgress = entries.filter((p) => !p.completed);
+  const totalSeconds = entries.reduce((acc, p) => acc + (p.currentTime || 0), 0);
+
+  const seriesMap = new Map<string, { listened: Set<string>; completed: Set<string>; lastListened: string; lastShiurId: string }>();
+  for (const p of entries) {
+    if (!p.seriesSlug) continue;
+    const existing = seriesMap.get(p.seriesSlug);
+    if (!existing) {
+      seriesMap.set(p.seriesSlug, {
+        listened: new Set([p.shiurId]),
+        completed: p.completed ? new Set([p.shiurId]) : new Set(),
+        lastListened: p.lastListened,
+        lastShiurId: p.shiurId,
+      });
+    } else {
+      existing.listened.add(p.shiurId);
+      if (p.completed) existing.completed.add(p.shiurId);
+      if (new Date(p.lastListened) > new Date(existing.lastListened)) {
+        existing.lastListened = p.lastListened;
+        existing.lastShiurId = p.shiurId;
+      }
+    }
+  }
+
+  const seriesProgress: SeriesWithProgress[] = [];
+  for (const series of allSeries) {
+    const data = seriesMap.get(series.slug);
+    if (!data) continue;
+    seriesProgress.push({
+      slug: series.slug,
+      name: series.name,
+      episodeCount: series.episodeCount,
+      listenedCount: data.listened.size,
+      completedCount: data.completed.size,
+      lastListened: data.lastListened,
+      lastShiurProgress: getProgressPercentage(data.lastShiurId),
+    });
+  }
+  seriesProgress.sort((a, b) => new Date(b.lastListened).getTime() - new Date(a.lastListened).getTime());
+
+  const stats: LearningStats = {
+    totalShiurim: entries.length,
+    completedShiurim: completed.length,
+    inProgressShiurim: inProgress.length,
+    seriesStarted: seriesMap.size,
+    totalMinutes: Math.round(totalSeconds / 60),
+  };
+
+  return { stats, seriesProgress };
 }
 
 function formatRelativeTime(isoDate: string): string {
@@ -31,37 +97,26 @@ function formatRelativeTime(isoDate: string): string {
   return new Date(isoDate).toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
 
-export default function MyLearningClient() {
+function formatMinutes(mins: number): string {
+  if (mins < 60) return `${mins} min`;
+  const h = Math.floor(mins / 60);
+  const m = mins % 60;
+  return m > 0 ? `${h}h ${m}m` : `${h}h`;
+}
+
+export default function MyLearningClient({ allSeries }: { allSeries: SeriesInfo[] }) {
   const { user, loading: authLoading } = useAuth();
   const [showAuthModal, setShowAuthModal] = useState(false);
-  const [inProgressSeries, setInProgressSeries] = useState<SeriesWithProgress[]>([]);
+  const [stats, setStats] = useState<LearningStats>({ totalShiurim: 0, completedShiurim: 0, inProgressShiurim: 0, seriesStarted: 0, totalMinutes: 0 });
+  const [seriesProgress, setSeriesProgress] = useState<SeriesWithProgress[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const all = getAllProgress();
-    const inProgress = Object.values(all).filter((p) => !p.completed && p.currentTime > 10);
-
-    const seriesMap = new Map<string, SeriesWithProgress>();
-    inProgress.forEach((p) => {
-      if (!p.seriesSlug) return;
-      const existing = seriesMap.get(p.seriesSlug);
-      if (!existing || new Date(p.lastListened) > new Date(existing.lastListened)) {
-        seriesMap.set(p.seriesSlug, {
-          seriesSlug: p.seriesSlug, seriesName: formatSeriesName(p.seriesSlug),
-          lastListened: p.lastListened, totalListened: 1, lastShiurId: p.shiurId,
-          progressPercent: getProgressPercentage(p.shiurId),
-        });
-      }
-    });
-
-    Array.from(seriesMap.keys()).forEach((slug) => {
-      const sp = getSeriesProgress(slug);
-      if (sp) { const c = seriesMap.get(slug)!; seriesMap.set(slug, { ...c, totalListened: sp.totalListened }); }
-    });
-
-    setInProgressSeries(Array.from(seriesMap.values()).sort((a, b) => new Date(b.lastListened).getTime() - new Date(a.lastListened).getTime()));
+    const data = computeData(allSeries);
+    setStats(data.stats);
+    setSeriesProgress(data.seriesProgress);
     setLoading(false);
-  }, []);
+  }, [allSeries]);
 
   if (authLoading) {
     return (
@@ -116,55 +171,89 @@ export default function MyLearningClient() {
     <main className="min-h-screen bg-cream">
       <section className="bg-gradient-to-br from-brown to-brown-light text-white py-16 px-6">
         <div className="max-w-6xl mx-auto">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">Welcome back{user.displayName ? `, ${user.displayName.split(" ")[0]}` : ""}</h1>
+          <h1 className="text-4xl md:text-5xl font-bold mb-4">
+            Welcome back{user.displayName ? `, ${user.displayName.split(" ")[0]}` : ""}
+          </h1>
           <p className="text-white/80 text-lg">Continue your Torah learning journey</p>
         </div>
       </section>
+
       <section className="py-12 px-6">
         <div className="max-w-6xl mx-auto">
           {loading ? (
             <div className="text-center py-20">
               <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-amber border-t-transparent" />
             </div>
-          ) : inProgressSeries.length === 0 ? (
+          ) : seriesProgress.length === 0 ? (
             <div className="text-center py-20">
               <h2 className="text-2xl font-bold text-brown mb-2">Start Your Learning Journey</h2>
               <p className="text-brown/60 mb-6">You haven&apos;t started any shiurim yet.</p>
               <Link href="/" className="inline-block bg-amber text-white px-8 py-3 rounded-xl font-semibold hover:bg-amber-light transition-colors">Browse Shiurim</Link>
             </div>
           ) : (
-            <div>
-              <h2 className="text-2xl font-bold text-brown mb-6">Continue Learning</h2>
-              <motion.div initial="hidden" animate="visible" variants={stagger} className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {inProgressSeries.map((s) => (
-                  <motion.div key={s.seriesSlug} variants={fadeUp}>
-                    <Link href={`/shiurim/${s.seriesSlug}`}
+            <>
+              {/* Stats Overview */}
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-10">
+                {[
+                  { label: "Shiurim Started", value: stats.totalShiurim },
+                  { label: "Completed", value: stats.completedShiurim },
+                  { label: "In Progress", value: stats.inProgressShiurim },
+                  { label: "Series", value: stats.seriesStarted },
+                  { label: "Time Listened", value: formatMinutes(stats.totalMinutes) },
+                ].map((item) => (
+                  <div key={item.label} className="bg-white border border-amber/15 rounded-xl p-4 text-center shadow-sm">
+                    <p className="text-brown text-2xl font-bold">{item.value}</p>
+                    <p className="text-brown/50 text-xs mt-1">{item.label}</p>
+                  </div>
+                ))}
+              </div>
+
+              {/* Series Progress Cards */}
+              <h2 className="text-brown font-bold text-2xl mb-6">Continue Learning</h2>
+              <div className="space-y-4">
+                {seriesProgress.map((s) => {
+                  const pct = Math.round((s.completedCount / s.episodeCount) * 100);
+                  return (
+                    <Link key={s.slug} href={`/shiurim/${s.slug}`}
                       className="block bg-white border border-amber/15 rounded-xl p-6 shadow-sm hover:shadow-md hover:border-amber/30 transition-all group">
-                      <div className="flex items-start justify-between gap-4 mb-4">
-                        <div className="flex-1">
-                          <h3 className="text-brown font-bold text-xl group-hover:text-amber transition-colors mb-1">{s.seriesName}</h3>
-                          <p className="text-brown/50 text-sm">{s.totalListened} shiur{s.totalListened !== 1 ? "im" : ""} listened</p>
+                      <div className="flex items-center justify-between gap-4 mb-4">
+                        <div className="flex-1 min-w-0">
+                          <h3 className="text-brown font-bold text-xl group-hover:text-amber transition-colors">{s.name}</h3>
+                          <p className="text-brown/50 text-sm mt-1">
+                            <span className="font-semibold text-brown/70">{s.completedCount}</span> / {s.episodeCount} shiurim completed
+                            <span className="text-brown/30 mx-2">·</span>
+                            Last listened {formatRelativeTime(s.lastListened)}
+                          </p>
                         </div>
-                        <span className="inline-flex items-center gap-1 bg-amber/10 text-amber text-xs font-semibold rounded-full px-3 py-1.5 shrink-0">Resume</span>
+                        <span className="inline-flex items-center gap-2 bg-amber text-white text-sm font-semibold rounded-xl px-5 py-2.5 shrink-0 shadow-sm group-hover:bg-amber-light transition-colors">
+                          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg>
+                          Continue
+                        </span>
                       </div>
-                      {s.progressPercent > 0 && (
-                        <div className="mb-3">
-                          <div className="flex items-center justify-between text-xs text-brown/60 mb-1.5">
-                            <span>Last shiur progress</span><span>{s.progressPercent}%</span>
-                          </div>
-                          <div className="h-2 bg-brown/10 rounded-full overflow-hidden">
-                            <div className="h-full bg-amber rounded-full" style={{ width: `${s.progressPercent}%` }} />
-                          </div>
-                        </div>
-                      )}
-                      <div className="text-xs text-brown/40 pt-3 border-t border-amber/10">
-                        Last listened: {formatRelativeTime(s.lastListened)}
+                      <div className="h-2.5 bg-brown/8 rounded-full overflow-hidden">
+                        <div className="h-full bg-amber rounded-full transition-all" style={{ width: `${pct}%` }} />
+                      </div>
+                      <div className="flex items-center justify-between mt-2">
+                        <p className="text-brown/40 text-xs">{pct}% complete</p>
+                        {s.lastShiurProgress > 0 && s.lastShiurProgress < 100 && (
+                          <p className="text-amber text-xs font-medium">Current shiur: {s.lastShiurProgress}% listened</p>
+                        )}
                       </div>
                     </Link>
-                  </motion.div>
-                ))}
-              </motion.div>
-            </div>
+                  );
+                })}
+              </div>
+
+              {/* Browse More */}
+              <div className="mt-10 text-center">
+                <Link href="/" className="inline-flex items-center gap-2 border-2 border-amber/30 text-brown px-8 py-3 rounded-xl font-semibold hover:bg-amber/5 transition-colors">
+                  <svg className="w-5 h-5 text-amber" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                  </svg>
+                  Browse More Shiurim
+                </Link>
+              </div>
+            </>
           )}
         </div>
       </section>

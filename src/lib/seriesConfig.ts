@@ -6,15 +6,28 @@ function extractPerek(title: string, prefix: RegExp): { section?: string; detail
   return perekMatch ? { section: `Perek ${perekMatch[1]}` } : {};
 }
 
+function extractTanyaPerek(title: string): { section?: string; detail?: string } {
+  const perekMatch = title.match(/Perek\s+(\d+)/i);
+  return perekMatch ? { section: `Perek ${perekMatch[1]}` } : {};
+}
+
 export const SERIES_GROUPS = {
   "nefesh-hachaim": {
     label: "Nefesh HaChaim",
     description: "Rav Chaim Volozhiner's masterwork on the soul and Torah study",
   },
+  "tanya": {
+    label: "Tanya",
+    description: "The Alter Rebbe's foundational work of Chassidic thought — clear and concise 5-minute lessons",
+  },
+  "bitachon": {
+    label: "Bitachon",
+    description: "Strengthening trust in Hashem through Torah sources and the weekly Parsha",
+  },
 } as const;
 
 export const SERIES: SeriesDef[] = [
-  // ========== NEFESH HACHAIM (grouped, in Shaar order) ==========
+  // ========== NEFESH HACHAIM (Shaar 1-4) ==========
   {
     slug: "nefesh-hachaim-shaar-1",
     name: "Shaar 1",
@@ -67,28 +80,95 @@ export const SERIES: SeriesDef[] = [
     sortDefault: "oldest",
     displayOrder: 4,
   },
-
-  // ========== UNGROUPED SERIES ==========
+  // Catch-all for Nefesh HaChaim titles not matching a specific Shaar (Introduction, etc.)
   {
-    slug: "tanya",
-    name: "5 Minute Tanya",
+    slug: "nefesh-hachaim-other",
+    name: "Introduction & Other",
     description:
-      "Daily insights into the Tanya — the foundational work of Chassidic thought by the Alter Rebbe.",
-    patterns: [/tanya/i],
-    group: null,
+      "Introduction and additional Nefesh HaChaim content.",
+    patterns: [/^Nefesh\s+Ha?[Cc]h?a[yi]+m/i],
+    group: "nefesh-hachaim",
     navType: "sequential",
     sortDefault: "oldest",
+    displayOrder: 5,
   },
+
+  // ========== TANYA (sub-series) ==========
+  // Igeres HaTeshuva MUST come before general Tanya Perek pattern
   {
-    slug: "bitachon",
-    name: "Bitachon",
+    slug: "tanya-igeres-hateshuvah",
+    name: "Igeres HaTeshuva",
     description:
-      "7-minute chizuk on Bitachon — strengthening trust in Hashem drawn from the Parsha and Moadim.",
-    patterns: [/bitachon/i, /^7\s*min.*chizuk/i],
-    group: null,
+      "The Alter Rebbe's guide to teshuvah — 12 chapters on repentance and returning to Hashem.",
+    patterns: [/Igeres\s+HaTeshuva/i],
+    group: "tanya",
+    navType: "sequential",
+    sortDefault: "oldest",
+    displayOrder: 2,
+  },
+  // Takeaway & Summary MUST come before general Tanya Perek pattern
+  {
+    slug: "tanya-takeaway",
+    name: "Takeaway & Summaries",
+    description:
+      "Key takeaways and chapter summaries for review and chazara.",
+    patterns: [/Tanya\s+(Takeaway|Summary|Opening|Introduction)/i],
+    group: "tanya",
+    navType: "sequential",
+    sortDefault: "oldest",
+    displayOrder: 3,
+  },
+  // Main Tanya (Likkutei Amarim) - catches "Tanya Perek X"
+  {
+    slug: "tanya-likkutei-amarim",
+    name: "Likkutei Amarim",
+    description:
+      "The main body of Tanya — 53 chapters guiding the Beinoni in serving Hashem with mind and heart.",
+    patterns: [/^Tanya?\s+P[ei]r[ei]k/i, /^Tanay\s+P[ei]r[ei]k/i],
+    group: "tanya",
+    navType: "perek",
+    extractNav: extractTanyaPerek,
+    sortDefault: "oldest",
+    displayOrder: 1,
+  },
+  // Catch-all for any other Tanya episodes
+  {
+    slug: "tanya-other",
+    name: "Other Tanya",
+    description: "Additional Tanya shiurim.",
+    patterns: [/tanya/i, /tanay/i],
+    group: "tanya",
     navType: "sequential",
     sortDefault: "newest",
+    displayOrder: 4,
   },
+
+  // ========== BITACHON (sub-series) ==========
+  // Pesukai Bitachon MUST come before general Bitachon pattern
+  {
+    slug: "pesukai-bitachon",
+    name: "Pesukai Bitachon",
+    description:
+      "Exploring key pesukim on the theme of bitachon and trust in Hashem.",
+    patterns: [/^Pesukai\s+Bitachon/i],
+    group: "bitachon",
+    navType: "sequential",
+    sortDefault: "oldest",
+    displayOrder: 2,
+  },
+  {
+    slug: "bitachon-shiurim",
+    name: "Weekly Bitachon",
+    description:
+      "7-minute chizuk on Bitachon — strengthening trust in Hashem drawn from the Parsha and Moadim.",
+    patterns: [/^Bitachon\b/i, /^7\s*min.*chizuk/i],
+    group: "bitachon",
+    navType: "sequential",
+    sortDefault: "newest",
+    displayOrder: 1,
+  },
+
+  // ========== STANDALONE SERIES (no group) ==========
   {
     slug: "parsha",
     name: "Parshas HaShavua",
@@ -121,6 +201,9 @@ export const SERIES: SeriesDef[] = [
       /^Sukk?os/i,
       /^Shavuos/i,
       /^Pesach/i,
+      /^Lag\s+B/i,
+      /^Yud\s+Tes/i,
+      /^Tu\s+B/i,
     ],
     group: null,
     navType: "sequential",
