@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import { motion } from "framer-motion";
 import type { Shiur, SeriesStats } from "@/lib/types";
 import { useAudioPlayer } from "./AudioPlayerProvider";
@@ -23,6 +23,8 @@ interface LandingProps {
 
 export default function HomeLanding({ ungrouped, groups, totalCount, latestShiurim, allShiurim }: LandingProps) {
   const [searchQuery, setSearchQuery] = useState("");
+  const [activeSection, setActiveSection] = useState("");
+  const tabsRef = useRef<HTMLDivElement>(null);
   const { playShiur, playerState } = useAudioPlayer();
 
   const searchResults = useMemo(() => {
@@ -32,6 +34,48 @@ export default function HomeLanding({ ungrouped, groups, totalCount, latestShiur
   }, [searchQuery, allShiurim]);
 
   const isSearching = searchQuery.trim().length > 0;
+
+  // Build tab items from data
+  const tabs = useMemo(() => {
+    const items: { id: string; label: string }[] = [];
+    groups.forEach((g) => items.push({ id: `section-${g.id}`, label: g.label }));
+    if (ungrouped.length > 0) items.push({ id: "section-browse", label: "Browse" });
+    if (latestShiurim.length > 0) items.push({ id: "section-latest", label: "Latest" });
+    return items;
+  }, [groups, ungrouped, latestShiurim]);
+
+  // Track which section is in view
+  useEffect(() => {
+    const ids = tabs.map((t) => t.id);
+    if (ids.length === 0) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) {
+            setActiveSection(entry.target.id);
+          }
+        }
+      },
+      { rootMargin: "-40% 0px -50% 0px" }
+    );
+
+    ids.forEach((id) => {
+      const el = document.getElementById(id);
+      if (el) observer.observe(el);
+    });
+
+    return () => observer.disconnect();
+  }, [tabs]);
+
+  const scrollToSection = useCallback((id: string) => {
+    const el = document.getElementById(id);
+    if (el) {
+      const offset = 160; // sticky header + search bar height
+      const top = el.getBoundingClientRect().top + window.scrollY - offset;
+      window.scrollTo({ top, behavior: "smooth" });
+    }
+  }, []);
 
   return (
     <main className="min-h-screen">
@@ -59,10 +103,27 @@ export default function HomeLanding({ ungrouped, groups, totalCount, latestShiur
 
       <SignInBanner />
 
-      {/* Search */}
-      <section className="bg-tan border-b border-amber/10 py-6 px-6 sticky top-[73px] z-40 backdrop-blur-sm bg-tan/95">
-        <div className="max-w-5xl mx-auto">
+      {/* Search + Section Tabs */}
+      <section className="bg-tan border-b border-amber/10 py-4 px-6 sticky top-[73px] z-40 backdrop-blur-sm bg-tan/95">
+        <div className="max-w-5xl mx-auto space-y-3">
           <SearchBar value={searchQuery} onChange={setSearchQuery} />
+          {!isSearching && tabs.length > 0 && (
+            <div ref={tabsRef} className="flex items-center gap-1 overflow-x-auto scrollbar-thin pb-0.5 -mb-1">
+              {tabs.map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => scrollToSection(tab.id)}
+                  className={`whitespace-nowrap px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+                    activeSection === tab.id
+                      ? "bg-brown text-amber"
+                      : "text-brown/50 hover:text-brown/80 hover:bg-brown/5"
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       </section>
 
@@ -91,7 +152,7 @@ export default function HomeLanding({ ungrouped, groups, totalCount, latestShiur
             <>
               {/* Grouped series (Nefesh HaChaim) */}
               {groups.map((group) => (
-                <motion.div key={group.id} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={stagger} className="mb-16">
+                <motion.div key={group.id} id={`section-${group.id}`} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={stagger} className="mb-16">
                   <motion.div variants={fadeUp} className="flex items-center gap-4 mb-8">
                     <div className="size-12 bg-amber/10 rounded-xl flex items-center justify-center">
                       <svg className="w-6 h-6 text-amber" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -111,7 +172,7 @@ export default function HomeLanding({ ungrouped, groups, totalCount, latestShiur
               ))}
 
               {/* Ungrouped */}
-              <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={stagger}>
+              <motion.div id="section-browse" initial="hidden" whileInView="visible" viewport={{ once: true }} variants={stagger}>
                 <motion.div variants={fadeUp} className="flex items-center gap-4 mb-8">
                   <div className="size-12 bg-amber/10 rounded-xl flex items-center justify-center">
                     <svg className="w-6 h-6 text-amber" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -127,7 +188,7 @@ export default function HomeLanding({ ungrouped, groups, totalCount, latestShiur
               </motion.div>
 
               {/* Latest */}
-              <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={stagger} className="mt-16">
+              <motion.div id="section-latest" initial="hidden" whileInView="visible" viewport={{ once: true }} variants={stagger} className="mt-16">
                 <motion.div variants={fadeUp} className="flex items-center gap-4 mb-8">
                   <div className="size-12 bg-amber/10 rounded-xl flex items-center justify-center">
                     <svg className="w-6 h-6 text-amber" fill="none" stroke="currentColor" viewBox="0 0 24 24">
