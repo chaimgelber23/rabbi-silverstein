@@ -33,7 +33,7 @@ export const SERIES: SeriesDef[] = [
     name: "Shaar 1",
     description:
       "The nature of man as the foundation of all worlds — how human actions impact the upper realms.",
-    patterns: [/^Nefesh\s+Ha?[Cc]h?a[yi]+m\s+Shaar\s+1/i],
+    patterns: [/^Nefesh\s+Ha?[Cc]h?a[yi]+m\s+(Shaar\s+1|Introduction)/i],
     group: "nefesh-hachaim",
     navType: "perek",
     extractNav: (t) =>
