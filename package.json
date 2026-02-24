@@ -9,6 +9,10 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@vercel/analytics": "^1.6.1",
+    "fast-xml-parser": "^5.3.7",
+    "firebase": "^12.9.0",
+    "framer-motion": "^12.34.3",
     "next": "16.1.6",
     "react": "19.2.3",
     "react-dom": "19.2.3"
