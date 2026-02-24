@@ -16,10 +16,10 @@ function formatTime(seconds: number): string {
 
 export default function AudioPlayer({
   shiur, isPlaying, currentTime, duration, playbackRate,
-  onTogglePlay, onSeek, onSetRate, onClose,
+  onTogglePlay, onSeek, onSkipBack, onSkipForward, onSetRate, onClose,
 }: {
   shiur: Shiur; isPlaying: boolean; currentTime: number; duration: number; playbackRate: number;
-  onTogglePlay: () => void; onSeek: (time: number) => void; onSetRate: (rate: number) => void; onClose: () => void;
+  onTogglePlay: () => void; onSeek: (time: number) => void; onSkipBack: () => void; onSkipForward: () => void; onSetRate: (rate: number) => void; onClose: () => void;
 }) {
   const progress = duration > 0 ? (currentTime / duration) * 100 : 0;
 
@@ -42,13 +42,23 @@ export default function AudioPlayer({
               <div className="absolute right-0 top-1/2 -translate-y-1/2 w-3 h-3 bg-amber rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
             </div>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
+            <button onClick={onSkipBack} className="shrink-0 w-8 h-8 flex items-center justify-center text-white/50 hover:text-amber transition-colors" title="Back 10s">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12.066 11.2a1 1 0 000 1.6l5.334 4A1 1 0 0019 16V8a1 1 0 00-1.6-.8l-5.333 4zM4.066 11.2a1 1 0 000 1.6l5.334 4A1 1 0 0011 16V8a1 1 0 00-1.6-.8l-5.334 4z" />
+              </svg>
+            </button>
             <button onClick={onTogglePlay} className="shrink-0 w-10 h-10 bg-amber/20 hover:bg-amber/30 rounded-full flex items-center justify-center text-amber transition-colors">
               {isPlaying ? (
                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><rect x="6" y="4" width="4" height="16" /><rect x="14" y="4" width="4" height="16" /></svg>
               ) : (
                 <svg className="w-5 h-5 ml-0.5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg>
               )}
+            </button>
+            <button onClick={onSkipForward} className="shrink-0 w-8 h-8 flex items-center justify-center text-white/50 hover:text-amber transition-colors" title="Forward 10s">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.933 12.8a1 1 0 000-1.6L6.6 7.2A1 1 0 005 8v8a1 1 0 001.6.8l5.333-4zM19.933 12.8a1 1 0 000-1.6l-5.333-4A1 1 0 0013 8v8a1 1 0 001.6.8l5.333-4z" />
+              </svg>
             </button>
             <div className="flex-1 min-w-0">
               <p className="text-white text-sm font-semibold truncate">{shiur.title}</p>

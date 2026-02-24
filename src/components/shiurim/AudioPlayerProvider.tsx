@@ -9,6 +9,8 @@ interface AudioPlayerContextType {
   playShiur: (shiur: Shiur, startFromBeginning?: boolean, seriesSlug?: string, nextShiur?: Shiur | null) => void;
   togglePlayPause: () => void;
   seek: (time: number) => void;
+  skipBack: () => void;
+  skipForward: () => void;
   setPlaybackRate: (rate: number) => void;
   closePlayer: () => void;
 }
@@ -127,6 +129,8 @@ export function AudioPlayerProvider({ children }: { children: ReactNode }) {
 
   const togglePlayPause = useCallback(() => { const a = audioRef.current; if (!a) return; if (a.paused) a.play(); else a.pause(); }, []);
   const seek = useCallback((time: number) => { const a = audioRef.current; if (a) a.currentTime = time; }, []);
+  const skipBack = useCallback(() => { const a = audioRef.current; if (a) a.currentTime = Math.max(0, a.currentTime - 10); }, []);
+  const skipForward = useCallback(() => { const a = audioRef.current; if (a) a.currentTime = Math.min(a.duration || 0, a.currentTime + 10); }, []);
   const setPlaybackRate = useCallback((rate: number) => {
     const a = audioRef.current; if (!a) return; a.playbackRate = rate;
     setPlayerState((prev) => ({ ...prev, playbackRate: rate }));
@@ -137,7 +141,7 @@ export function AudioPlayerProvider({ children }: { children: ReactNode }) {
   }, []);
 
   return (
-    <AudioPlayerContext.Provider value={{ playerState, playShiur, togglePlayPause, seek, setPlaybackRate, closePlayer }}>
+    <AudioPlayerContext.Provider value={{ playerState, playShiur, togglePlayPause, seek, skipBack, skipForward, setPlaybackRate, closePlayer }}>
       {children}
     </AudioPlayerContext.Provider>
   );

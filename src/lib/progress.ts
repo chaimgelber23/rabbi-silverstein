@@ -164,9 +164,14 @@ export function isInProgress(shiurId: string): boolean {
 }
 
 export function getNextShiur(shiurim: Shiur[], currentShiurId: string): Shiur | null {
-  const currentIndex = shiurim.findIndex((s) => s.id === currentShiurId);
-  if (currentIndex === -1 || currentIndex === shiurim.length - 1) return null;
-  return shiurim[currentIndex + 1];
+  const current = shiurim.find((s) => s.id === currentShiurId);
+  if (!current) return null;
+  // Always advance to the chronologically next (later pubDate) shiur
+  const currentDate = new Date(current.pubDate).getTime();
+  const later = shiurim
+    .filter((s) => new Date(s.pubDate).getTime() > currentDate)
+    .sort((a, b) => new Date(a.pubDate).getTime() - new Date(b.pubDate).getTime());
+  return later[0] || null;
 }
 
 export function getRecommendedShiur(
