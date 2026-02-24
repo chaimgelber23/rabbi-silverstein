@@ -1,5 +1,5 @@
 import { fetchAllShiurim } from "./shiurim";
-import { SERIES, SERIES_GROUPS } from "./seriesConfig";
+import { SERIES, SERIES_GROUPS, getGroupSeriesPatterns } from "./seriesConfig";
 import type { Shiur, SeriesStats } from "./types";
 
 export async function getSeriesShiurim(slug: string): Promise<Shiur[]> {
@@ -82,6 +82,16 @@ export async function getLandingData(): Promise<{
     totalCount: allShiurim.length,
     latestShiurim: allShiurim.slice(0, 6),
   };
+}
+
+export async function getGroupShiurim(groupId: string): Promise<Shiur[]> {
+  const patterns = getGroupSeriesPatterns(groupId);
+  if (patterns.length === 0) return [];
+
+  const allShiurim = await fetchAllShiurim();
+  return allShiurim.filter((shiur) =>
+    patterns.some((p) => p.test(shiur.title))
+  );
 }
 
 export async function getSeriesNavSections(slug: string): Promise<string[]> {

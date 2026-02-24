@@ -213,7 +213,18 @@ export function getSeriesBySlug(slug: string): SeriesDef | undefined {
 }
 
 export function getAllSlugs(): string[] {
-  return SERIES.map((s) => s.slug);
+  return [
+    ...SERIES.map((s) => s.slug),
+    ...Object.keys(SERIES_GROUPS), // group-level pages
+  ];
+}
+
+export function getGroupInfo(groupId: string): { label: string; description: string } | undefined {
+  return (SERIES_GROUPS as Record<string, { label: string; description: string }>)[groupId];
+}
+
+export function getGroupSeriesPatterns(groupId: string): RegExp[] {
+  return SERIES.filter((s) => s.group === groupId).flatMap((s) => s.patterns);
 }
 
 export function matchTitleToSeries(title: string): SeriesDef | undefined {
