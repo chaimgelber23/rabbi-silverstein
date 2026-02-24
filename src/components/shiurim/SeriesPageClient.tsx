@@ -125,7 +125,9 @@ export default function SeriesPageClient({ series, shiurim, navSections }: {
           <motion.div initial="hidden" animate="visible" variants={stagger} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {visible.map((shiur) => (
               <motion.div key={shiur.id} variants={fadeUp}>
-                <ShiurCard shiur={shiur} onPlay={(s) => playShiur(s, false, series.slug, getNextShiur(filteredShiurim, s.id))}
+                <ShiurCard shiur={shiur}
+                  onPlay={(s) => playShiur(s, false, series.slug, getNextShiur(filteredShiurim, s.id))}
+                  onPlayFromBeginning={(s) => playShiur(s, true, series.slug, getNextShiur(filteredShiurim, s.id))}
                   isCurrentlyPlaying={playerState.currentShiur?.id === shiur.id && playerState.isPlaying}
                   isCurrent={playerState.currentShiur?.id === shiur.id} />
               </motion.div>

@@ -19,9 +19,9 @@ function formatDuration(duration: string): string {
 }
 
 export default function ShiurCard({
-  shiur, onPlay, isCurrentlyPlaying, isCurrent,
+  shiur, onPlay, onPlayFromBeginning, isCurrentlyPlaying, isCurrent,
 }: {
-  shiur: Shiur; onPlay: (shiur: Shiur) => void; isCurrentlyPlaying: boolean; isCurrent: boolean;
+  shiur: Shiur; onPlay: (shiur: Shiur) => void; onPlayFromBeginning?: (shiur: Shiur) => void; isCurrentlyPlaying: boolean; isCurrent: boolean;
 }) {
   const [progressPercent, setProgressPercent] = useState(0);
   const [inProg, setInProg] = useState(false);
@@ -62,7 +62,7 @@ export default function ShiurCard({
         </div>
       )}
 
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 flex-wrap">
         <button onClick={() => onPlay(shiur)}
           className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all ${isCurrent ? "bg-amber text-white" : "bg-amber/10 text-amber hover:bg-amber/20"}`}>
           {isCurrentlyPlaying ? (
@@ -71,6 +71,15 @@ export default function ShiurCard({
             <><svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg>{isCurrent ? "Resume" : (inProg ? "Resume" : "Play")}</>
           )}
         </button>
+        {inProg && !isCurrentlyPlaying && onPlayFromBeginning && (
+          <button onClick={() => onPlayFromBeginning(shiur)}
+            className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-brown/50 hover:text-amber hover:bg-amber/5 transition-all">
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+            Start Over
+          </button>
+        )}
         <a href={shiur.audioUrl} download target="_blank" rel="noopener noreferrer"
           className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-brown/50 hover:text-amber hover:bg-amber/5 transition-all" title="Download">
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
