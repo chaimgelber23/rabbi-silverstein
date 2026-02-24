@@ -18,11 +18,10 @@ interface LandingProps {
   ungrouped: SeriesStats[];
   groups: { id: string; label: string; description: string; series: SeriesStats[] }[];
   totalCount: number;
-  latestShiurim: Shiur[];
   allShiurim: Shiur[];
 }
 
-export default function HomeLanding({ ungrouped, groups, totalCount, latestShiurim, allShiurim }: LandingProps) {
+export default function HomeLanding({ ungrouped, groups, totalCount, allShiurim }: LandingProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeSection, setActiveSection] = useState("");
   const tabsRef = useRef<HTMLDivElement>(null);
@@ -36,7 +35,7 @@ export default function HomeLanding({ ungrouped, groups, totalCount, latestShiur
 
   const isSearching = searchQuery.trim().length > 0;
 
-  // Build tab items: scroll targets for groups/latest, links for individual series
+  // Build tab items: scroll targets for groups, links for individual series
   const tabs = useMemo(() => {
     const items: { id: string; label: string; href?: string }[] = [];
     groups.forEach((g) => items.push({ id: `section-${g.id}`, label: g.label }));
@@ -44,9 +43,8 @@ export default function HomeLanding({ ungrouped, groups, totalCount, latestShiur
     ungrouped
       .filter((s) => s.slug !== "other")
       .forEach((s) => items.push({ id: s.slug, label: s.name, href: `/shiurim/${s.slug}` }));
-    if (latestShiurim.length > 0) items.push({ id: "section-latest", label: "Latest" });
     return items;
-  }, [groups, ungrouped, latestShiurim]);
+  }, [groups, ungrouped]);
 
   // Scroll-target sections (only the ones that exist on the page)
   const scrollTabs = useMemo(() => tabs.filter((t) => !t.href), [tabs]);
@@ -182,50 +180,24 @@ export default function HomeLanding({ ungrouped, groups, totalCount, latestShiur
                     </div>
                   </motion.div>
                   <motion.div variants={fadeUp} className="w-20 h-1 bg-amber mb-10" />
-                  <motion.div variants={stagger} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                    {group.series.map((s) => <SeriesCard key={s.slug} series={s} />)}
+                  <motion.div variants={stagger} className="flex gap-4 overflow-x-auto pb-2 scrollbar-thin -mx-1 px-1">
+                    {group.series.map((s) => (
+                      <div key={s.slug} className="min-w-[260px] max-w-[320px] flex-shrink-0">
+                        <SeriesCard series={s} />
+                      </div>
+                    ))}
                   </motion.div>
                 </motion.div>
               ))}
 
-              {/* Ungrouped */}
-              <motion.div id="section-browse" initial="hidden" whileInView="visible" viewport={{ once: true }} variants={stagger}>
-                <motion.div variants={fadeUp} className="flex items-center gap-4 mb-8">
-                  <div className="size-12 bg-amber/10 rounded-xl flex items-center justify-center">
-                    <svg className="w-6 h-6 text-amber" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-                    </svg>
-                  </div>
-                  <h2 className="serif-heading text-brown text-4xl font-bold">Browse Shiurim</h2>
+              {/* Ungrouped series (Parsha, Holidays, Other) */}
+              {ungrouped.length > 0 && (
+                <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={stagger}>
+                  <motion.div variants={stagger} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {ungrouped.map((s) => <SeriesCard key={s.slug} series={s} />)}
+                  </motion.div>
                 </motion.div>
-                <motion.div variants={fadeUp} className="w-20 h-1 bg-amber mb-10" />
-                <motion.div variants={stagger} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {ungrouped.map((s) => <SeriesCard key={s.slug} series={s} />)}
-                </motion.div>
-              </motion.div>
-
-              {/* Latest */}
-              <motion.div id="section-latest" initial="hidden" whileInView="visible" viewport={{ once: true }} variants={stagger} className="mt-16">
-                <motion.div variants={fadeUp} className="flex items-center gap-4 mb-8">
-                  <div className="size-12 bg-amber/10 rounded-xl flex items-center justify-center">
-                    <svg className="w-6 h-6 text-amber" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                  </div>
-                  <h2 className="serif-heading text-brown text-4xl font-bold">Latest Shiurim</h2>
-                </motion.div>
-                <motion.div variants={fadeUp} className="w-20 h-1 bg-amber mb-10" />
-                <motion.div variants={stagger} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {latestShiurim.map((shiur) => (
-                    <motion.div key={shiur.id} variants={fadeUp}>
-                      <ShiurCard shiur={shiur}
-                        onPlay={(s) => playShiur(s, false, undefined, getNextShiur(latestShiurim, s.id))}
-                        isCurrentlyPlaying={playerState.currentShiur?.id === shiur.id && playerState.isPlaying}
-                        isCurrent={playerState.currentShiur?.id === shiur.id} />
-                    </motion.div>
-                  ))}
-                </motion.div>
-              </motion.div>
+              )}
 
               {/* CTA */}
               <div className="mt-16 bg-brown rounded-2xl py-12 px-6 text-center">

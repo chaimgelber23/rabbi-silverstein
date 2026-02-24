@@ -15,7 +15,6 @@ export default async function HomePage() {
       ungrouped={landingData.ungrouped}
       groups={landingData.groups}
       totalCount={landingData.totalCount}
-      latestShiurim={landingData.latestShiurim}
       allShiurim={allShiurim}
     />
   );

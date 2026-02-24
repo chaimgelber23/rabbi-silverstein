@@ -80,19 +80,6 @@ export const SERIES: SeriesDef[] = [
     sortDefault: "oldest",
     displayOrder: 4,
   },
-  // Catch-all for Nefesh HaChaim titles not matching a specific Shaar (Introduction, etc.)
-  {
-    slug: "nefesh-hachaim-other",
-    name: "Introduction & Other",
-    description:
-      "Introduction and additional Nefesh HaChaim content.",
-    patterns: [/^Nefesh\s+Ha?[Cc]h?a[yi]+m/i],
-    group: "nefesh-hachaim",
-    navType: "sequential",
-    sortDefault: "oldest",
-    displayOrder: 5,
-  },
-
   // ========== TANYA (sub-series) ==========
   // Igeres HaTeshuva MUST come before general Tanya Perek pattern
   {

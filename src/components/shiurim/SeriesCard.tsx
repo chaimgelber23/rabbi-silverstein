@@ -42,7 +42,10 @@ export default function SeriesCard({ series }: { series: SeriesStats }) {
             <span className="text-amber font-semibold text-sm">
               {hasProgress && listenedCount > 0 ? <>{listenedCount}/{series.episodeCount} listened</> : <>{series.episodeCount} shiur{series.episodeCount !== 1 ? "im" : ""}</>}
             </span>
-            <span className="text-brown/40 text-xs">Latest: {formatDate(series.latestDate)}</span>
+            <span className="text-brown/50 text-xs font-medium flex items-center gap-1 group-hover:text-amber transition-colors">
+              View All
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+            </span>
           </div>
         </div>
       </Link>
