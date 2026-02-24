@@ -29,8 +29,13 @@ export function AudioPlayerProvider({ children }: { children: ReactNode }) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const nextShiurRef = useRef<Shiur | null>(null);
   const seriesSlugRef = useRef<string | null>(null);
+  const currentShiurRef = useRef<Shiur | null>(null);
   const progressSaveIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
+  // Keep ref in sync with state so event handlers always have latest value
+  currentShiurRef.current = playerState.currentShiur;
+
+  // Create audio element ONCE on mount — never recreate
   useEffect(() => {
     const audio = new Audio();
     audio.preload = "none";
@@ -42,13 +47,14 @@ export function AudioPlayerProvider({ children }: { children: ReactNode }) {
     const onDurationChange = () => setPlayerState((p) => ({ ...p, duration: audio.duration || 0 }));
     const onEnded = () => {
       setPlayerState((p) => ({ ...p, isPlaying: false, currentTime: 0 }));
-      if (playerState.currentShiur) {
+      const shiur = currentShiurRef.current;
+      if (shiur) {
         saveShiurProgress({
-          shiurId: playerState.currentShiur.id, seriesSlug: seriesSlugRef.current || undefined,
+          shiurId: shiur.id, seriesSlug: seriesSlugRef.current || undefined,
           currentTime: audio.duration || 0, duration: audio.duration || 0,
           lastListened: new Date().toISOString(), completed: true,
         });
-        if (seriesSlugRef.current) saveSeriesProgress(seriesSlugRef.current, playerState.currentShiur.id);
+        if (seriesSlugRef.current) saveSeriesProgress(seriesSlugRef.current, shiur.id);
       }
       if (nextShiurRef.current) {
         const next = nextShiurRef.current;
@@ -78,7 +84,8 @@ export function AudioPlayerProvider({ children }: { children: ReactNode }) {
       audio.pause();
       audio.src = "";
     };
-  }, [playerState.currentShiur]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     if (playerState.isPlaying && playerState.currentShiur && playerState.duration > 0) {

@@ -2,6 +2,7 @@
 
 import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import { motion } from "framer-motion";
+import Link from "next/link";
 import type { Shiur, SeriesStats } from "@/lib/types";
 import { useAudioPlayer } from "./AudioPlayerProvider";
 import { getNextShiur } from "@/lib/progress";
@@ -35,18 +36,24 @@ export default function HomeLanding({ ungrouped, groups, totalCount, latestShiur
 
   const isSearching = searchQuery.trim().length > 0;
 
-  // Build tab items from data
+  // Build tab items: scroll targets for groups/latest, links for individual series
   const tabs = useMemo(() => {
-    const items: { id: string; label: string }[] = [];
+    const items: { id: string; label: string; href?: string }[] = [];
     groups.forEach((g) => items.push({ id: `section-${g.id}`, label: g.label }));
-    if (ungrouped.length > 0) items.push({ id: "section-browse", label: "Browse" });
+    // Show each ungrouped series by name (skip "Other Shiurim" catch-all)
+    ungrouped
+      .filter((s) => s.slug !== "other")
+      .forEach((s) => items.push({ id: s.slug, label: s.name, href: `/shiurim/${s.slug}` }));
     if (latestShiurim.length > 0) items.push({ id: "section-latest", label: "Latest" });
     return items;
   }, [groups, ungrouped, latestShiurim]);
 
+  // Scroll-target sections (only the ones that exist on the page)
+  const scrollTabs = useMemo(() => tabs.filter((t) => !t.href), [tabs]);
+
   // Track which section is in view
   useEffect(() => {
-    const ids = tabs.map((t) => t.id);
+    const ids = scrollTabs.map((t) => t.id);
     if (ids.length === 0) return;
 
     const observer = new IntersectionObserver(
@@ -66,7 +73,7 @@ export default function HomeLanding({ ungrouped, groups, totalCount, latestShiur
     });
 
     return () => observer.disconnect();
-  }, [tabs]);
+  }, [scrollTabs]);
 
   const scrollToSection = useCallback((id: string) => {
     const el = document.getElementById(id);
@@ -108,20 +115,30 @@ export default function HomeLanding({ ungrouped, groups, totalCount, latestShiur
         <div className="max-w-5xl mx-auto space-y-3">
           <SearchBar value={searchQuery} onChange={setSearchQuery} />
           {!isSearching && tabs.length > 0 && (
-            <div ref={tabsRef} className="flex items-center gap-1 overflow-x-auto scrollbar-thin pb-0.5 -mb-1">
-              {tabs.map((tab) => (
-                <button
-                  key={tab.id}
-                  onClick={() => scrollToSection(tab.id)}
-                  className={`whitespace-nowrap px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
-                    activeSection === tab.id
-                      ? "bg-brown text-amber"
-                      : "text-brown/50 hover:text-brown/80 hover:bg-brown/5"
-                  }`}
-                >
-                  {tab.label}
-                </button>
-              ))}
+            <div ref={tabsRef} className="flex items-center gap-2 overflow-x-auto scrollbar-thin pb-0.5 -mb-1">
+              {tabs.map((tab) =>
+                tab.href ? (
+                  <Link
+                    key={tab.id}
+                    href={tab.href}
+                    className="whitespace-nowrap px-4 py-2 rounded-full text-sm font-medium text-brown/50 hover:text-brown hover:bg-brown/5 transition-all"
+                  >
+                    {tab.label}
+                  </Link>
+                ) : (
+                  <button
+                    key={tab.id}
+                    onClick={() => scrollToSection(tab.id)}
+                    className={`whitespace-nowrap px-4 py-2 rounded-full text-sm font-medium transition-all ${
+                      activeSection === tab.id
+                        ? "bg-brown text-amber"
+                        : "text-brown/50 hover:text-brown hover:bg-brown/5"
+                    }`}
+                  >
+                    {tab.label}
+                  </button>
+                )
+              )}
             </div>
           )}
         </div>

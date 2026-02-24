@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import type { Shiur } from "@/lib/types";
 import { getProgressPercentage, isInProgress } from "@/lib/progress";
 
@@ -25,11 +25,35 @@ export default function ShiurCard({
 }) {
   const [progressPercent, setProgressPercent] = useState(0);
   const [inProg, setInProg] = useState(false);
+  const [downloading, setDownloading] = useState(false);
 
   useEffect(() => {
     setProgressPercent(getProgressPercentage(shiur.id));
     setInProg(isInProgress(shiur.id));
   }, [shiur.id]);
+
+  const handleDownload = useCallback(async () => {
+    setDownloading(true);
+    try {
+      const res = await fetch(shiur.audioUrl);
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      // Extract a clean filename from the title
+      const filename = shiur.title.replace(/[^a-zA-Z0-9\s-]/g, "").trim().replace(/\s+/g, "-") + ".mp3";
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch {
+      // Fallback: open in new tab if fetch fails (CORS)
+      window.open(shiur.audioUrl, "_blank");
+    } finally {
+      setDownloading(false);
+    }
+  }, [shiur.audioUrl, shiur.title]);
 
   return (
     <div className={`bg-white border rounded-xl p-5 shadow-sm hover:shadow-md transition-all ${isCurrent ? "border-amber ring-1 ring-amber/20" : "border-amber/15"}`}>
@@ -80,13 +104,20 @@ export default function ShiurCard({
             Start Over
           </button>
         )}
-        <a href={shiur.audioUrl} download target="_blank" rel="noopener noreferrer"
-          className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-brown/50 hover:text-amber hover:bg-amber/5 transition-all" title="Download">
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-          </svg>
-          Download
-        </a>
+        <button onClick={handleDownload} disabled={downloading}
+          className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-brown/50 hover:text-amber hover:bg-amber/5 transition-all disabled:opacity-50" title="Download">
+          {downloading ? (
+            <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+            </svg>
+          ) : (
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+            </svg>
+          )}
+          {downloading ? "Downloading..." : "Download"}
+        </button>
       </div>
     </div>
   );
