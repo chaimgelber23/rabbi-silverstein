@@ -4,6 +4,7 @@ import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import type { Shiur, SeriesStats } from "@/lib/types";
 import { useAudioPlayer } from "./AudioPlayerProvider";
+import { getNextShiur } from "@/lib/progress";
 import SearchBar from "./SearchBar";
 import SeriesCard from "./SeriesCard";
 import ShiurCard from "./ShiurCard";
@@ -76,7 +77,8 @@ export default function HomeLanding({ ungrouped, groups, totalCount, latestShiur
               {searchResults && searchResults.length > 0 && (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                   {searchResults.slice(0, 30).map((shiur) => (
-                    <ShiurCard key={shiur.id} shiur={shiur} onPlay={playShiur}
+                    <ShiurCard key={shiur.id} shiur={shiur}
+                      onPlay={(s) => playShiur(s, false, undefined, getNextShiur(searchResults, s.id))}
                       isCurrentlyPlaying={playerState.currentShiur?.id === shiur.id && playerState.isPlaying}
                       isCurrent={playerState.currentShiur?.id === shiur.id} />
                   ))}
@@ -138,7 +140,8 @@ export default function HomeLanding({ ungrouped, groups, totalCount, latestShiur
                 <motion.div variants={stagger} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                   {latestShiurim.map((shiur) => (
                     <motion.div key={shiur.id} variants={fadeUp}>
-                      <ShiurCard shiur={shiur} onPlay={playShiur}
+                      <ShiurCard shiur={shiur}
+                        onPlay={(s) => playShiur(s, false, undefined, getNextShiur(latestShiurim, s.id))}
                         isCurrentlyPlaying={playerState.currentShiur?.id === shiur.id && playerState.isPlaying}
                         isCurrent={playerState.currentShiur?.id === shiur.id} />
                     </motion.div>
