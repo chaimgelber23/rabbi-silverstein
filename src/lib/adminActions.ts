@@ -7,12 +7,17 @@ import {
   getDocs,
   doc,
   setDoc,
+  deleteDoc,
   serverTimestamp,
+  query,
+  orderBy,
+  limit,
 } from "firebase/firestore";
 import {
   ref,
   uploadBytesResumable,
   getDownloadURL,
+  deleteObject,
 } from "firebase/storage";
 import type { CustomSeriesDef, CustomGroupDef } from "./customData";
 
@@ -120,6 +125,52 @@ export async function saveCustomShiur(shiur: {
   });
 
   return docRef.id;
+}
+
+// ========== Fetch recent uploads ==========
+
+export interface RecentUpload {
+  id: string;
+  title: string;
+  seriesSlug: string;
+  duration: string;
+  storagePath: string;
+  pubDate: string;
+}
+
+export async function getRecentUploads(max = 20): Promise<RecentUpload[]> {
+  if (!db) return [];
+  const q = query(
+    collection(db, "customShiurim"),
+    orderBy("createdAt", "desc"),
+    limit(max)
+  );
+  const snapshot = await getDocs(q);
+  return snapshot.docs.map((d) => ({
+    id: d.id,
+    ...d.data(),
+  })) as RecentUpload[];
+}
+
+// ========== Delete shiur ==========
+
+export async function deleteCustomShiur(
+  shiurId: string,
+  storagePath: string
+): Promise<void> {
+  if (!db) throw new Error("Firestore not initialized");
+
+  // Delete Firestore doc
+  await deleteDoc(doc(db, "customShiurim", shiurId));
+
+  // Delete audio file from Storage
+  if (storage && storagePath) {
+    try {
+      await deleteObject(ref(storage, storagePath));
+    } catch {
+      // File may already be gone — not fatal
+    }
+  }
 }
 
 // ========== Revalidation ==========

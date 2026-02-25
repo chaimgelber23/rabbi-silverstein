@@ -15,7 +15,10 @@ import {
   getAudioDuration,
   formatDuration,
   generateSlug,
+  getRecentUploads,
+  deleteCustomShiur,
 } from "@/lib/adminActions";
+import type { RecentUpload } from "@/lib/adminActions";
 import type { CustomSeriesDef, CustomGroupDef } from "@/lib/customData";
 import Link from "next/link";
 import AuthModal from "@/components/AuthModal";
@@ -72,6 +75,9 @@ export default function AdminClient() {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [error, setError] = useState("");
   const [isRecording, setIsRecording] = useState(false);
+  const [recentUploads, setRecentUploads] = useState<RecentUpload[]>([]);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [showRecent, setShowRecent] = useState(false);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
 
@@ -80,6 +86,7 @@ export default function AdminClient() {
     if (user && isAdmin()) {
       getCustomSeriesClient().then(setCustomSeries);
       getCustomGroupsClient().then(setCustomGroups);
+      getRecentUploads().then(setRecentUploads);
     }
   }, [user]);
 
@@ -938,12 +945,103 @@ export default function AdminClient() {
                   // Refresh custom data
                   getCustomSeriesClient().then(setCustomSeries);
                   getCustomGroupsClient().then(setCustomGroups);
+                  getRecentUploads().then(setRecentUploads);
                 }}
                 className="block w-full border border-brown/20 text-brown font-semibold py-4 rounded-xl hover:bg-brown/5 transition-colors text-base"
               >
                 Upload Another
               </button>
             </div>
+          </div>
+        )}
+
+        {/* ========== Recent Uploads ========== */}
+        {!["uploading", "success"].includes(step) && (
+          <div className="mt-12 border-t border-brown/10 pt-8">
+            <button
+              onClick={() => {
+                setShowRecent(!showRecent);
+                if (!showRecent) getRecentUploads().then(setRecentUploads);
+              }}
+              className="flex items-center gap-2 text-brown/50 hover:text-brown transition-colors text-sm font-medium"
+            >
+              <svg
+                className={`w-4 h-4 transition-transform ${showRecent ? "rotate-90" : ""}`}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+              Recent Uploads ({recentUploads.length})
+            </button>
+
+            {showRecent && (
+              <div className="mt-4 space-y-2">
+                {recentUploads.length === 0 ? (
+                  <p className="text-brown/40 text-sm py-4 text-center">No uploads yet</p>
+                ) : (
+                  recentUploads.map((upload) => (
+                    <div
+                      key={upload.id}
+                      className="flex items-center justify-between bg-white border border-brown/10 rounded-xl px-4 py-3"
+                    >
+                      <div className="min-w-0 flex-1">
+                        <p className="text-brown font-medium text-sm truncate">
+                          {upload.title}
+                        </p>
+                        <p className="text-brown/40 text-xs">
+                          {upload.seriesSlug} &bull; {upload.duration || "—"}
+                          {upload.pubDate &&
+                            ` \u2022 ${new Date(upload.pubDate).toLocaleDateString()}`}
+                        </p>
+                      </div>
+                      {deletingId === upload.id ? (
+                        <div className="flex items-center gap-2 ml-3">
+                          <span className="text-red-500 text-xs">Delete?</span>
+                          <button
+                            onClick={async () => {
+                              try {
+                                await deleteCustomShiur(upload.id, upload.storagePath);
+                                setRecentUploads((prev) =>
+                                  prev.filter((u) => u.id !== upload.id)
+                                );
+                                setDeletingId(null);
+                                try {
+                                  await triggerRevalidation(`/shiurim/${upload.seriesSlug}`);
+                                } catch { /* non-fatal */ }
+                              } catch {
+                                setError("Failed to delete shiur");
+                                setDeletingId(null);
+                              }
+                            }}
+                            className="text-red-600 font-semibold text-xs px-2 py-1 rounded hover:bg-red-50"
+                          >
+                            Yes
+                          </button>
+                          <button
+                            onClick={() => setDeletingId(null)}
+                            className="text-brown/50 text-xs px-2 py-1 rounded hover:bg-brown/5"
+                          >
+                            No
+                          </button>
+                        </div>
+                      ) : (
+                        <button
+                          onClick={() => setDeletingId(upload.id)}
+                          className="text-brown/30 hover:text-red-500 transition-colors ml-3 p-1"
+                          title="Delete"
+                        >
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                        </button>
+                      )}
+                    </div>
+                  ))
+                )}
+              </div>
+            )}
           </div>
         )}
       </div>
