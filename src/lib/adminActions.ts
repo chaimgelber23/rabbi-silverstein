@@ -138,12 +138,11 @@ export interface RecentUpload {
   pubDate: string;
 }
 
-export async function getRecentUploads(max = 20): Promise<RecentUpload[]> {
+export async function getRecentUploads(): Promise<RecentUpload[]> {
   if (!db) return [];
   const q = query(
     collection(db, "customShiurim"),
-    orderBy("createdAt", "desc"),
-    limit(max)
+    orderBy("createdAt", "desc")
   );
   const snapshot = await getDocs(q);
   return snapshot.docs.map((d) => ({
