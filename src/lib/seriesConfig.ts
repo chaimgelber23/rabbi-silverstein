@@ -11,6 +11,55 @@ function extractTanyaPerek(title: string): { section?: string; detail?: string }
   return perekMatch ? { section: `Perek ${perekMatch[1]}` } : {};
 }
 
+const PARSHA_NAMES = [
+  "Bereishis","Noach","Lech Lecha","Vayeira","Chayei Sarah","Toldos","Vayeitzei",
+  "Vayishlach","Vayeshev","Mikeitz","Vayigash","Vayechi","Shemos","Va'eira","Bo",
+  "Beshalach","Yisro","Mishpatim","Terumah","Tetzaveh","Ki Sisa","Vayakhel",
+  "Pekudei","Vayikra","Tzav","Shemini","Tazria","Metzora","Acharei Mos","Kedoshim",
+  "Emor","Behar","Bechukosai","Bamidbar","Naso","Beha'aloscha","Shelach","Korach",
+  "Chukas","Balak","Pinchas","Matos","Masei","Devorim","Va'eschanan","Eikev",
+  "Re'eh","Shoftim","Ki Seitzei","Ki Savo","Nitzavim","Vayelech","Ha'azinu",
+  "V'Zos HaBracha",
+];
+
+function extractParsha(title: string): { section?: string; detail?: string } {
+  // Try to match "Parshas X" or "Parshat X" first
+  const parshasMatch = title.match(/^Parshas?\s+(.+?)(?:\s+\d{4}|\s+578[2-6]|\s*$)/i);
+  if (parshasMatch) {
+    const name = parshasMatch[1].trim();
+    return { section: name };
+  }
+  // Try to match a raw parsha name
+  for (const parsha of PARSHA_NAMES) {
+    if (title.toLowerCase().startsWith(parsha.toLowerCase())) {
+      return { section: parsha };
+    }
+  }
+  return {};
+}
+
+const YOM_TOV_MAP: [RegExp, string][] = [
+  [/^Purim/i, "Purim"],
+  [/^Chanuk/i, "Chanuka"],
+  [/^Rosh\s+Ha[Ss]hana/i, "Rosh Hashana"],
+  [/^Yom\s+Kippur/i, "Yom Kippur"],
+  [/^Sukk?os/i, "Sukkos"],
+  [/^Shavuos/i, "Shavuos"],
+  [/^Pesach/i, "Pesach"],
+  [/^Lag\s+B/i, "Lag B'Omer"],
+  [/^Yud\s+Tes/i, "Yud Tes Kislev"],
+  [/^Tu\s+B/i, "Tu B'Shvat"],
+];
+
+function extractYomTov(title: string): { section?: string; detail?: string } {
+  for (const [pattern, name] of YOM_TOV_MAP) {
+    if (pattern.test(title)) {
+      return { section: name };
+    }
+  }
+  return {};
+}
+
 export const SERIES_GROUPS = {
   "nefesh-hachaim": {
     label: "Nefesh HaChaim",
@@ -172,7 +221,8 @@ export const SERIES: SeriesDef[] = [
       /^(?:Bereishis|Noach|Lech\s*Lecha|Vayeira|Chayei\s*Sarah|Toldos|Vayeitzei|Vayishlach|Vayeshev|Mikeitz|Vayigash|Vayechi|Shemos|Va'?eira|Bo|Beshalach|Yisro|Mishpatim|Terumah|Tetzaveh|Ki\s*Sisa|Vayakhel|Pekudei|Vayikra|Tzav|Shemini|Tazria|Metzora|Acharei\s*Mos|Kedoshim|Emor|Behar|Bechukosai|Bamidbar|Naso|Beha'?aloscha|Shelach|Korach|Chukas|Balak|Pinchas|Matos|Masei|Devorim|Va'?eschanan|Eikev|Re'?eh|Shoftim|Ki\s*Seitzei|Ki\s*Savo|Nitzavim|Vayelech|Ha'?azinu|V'?Zos\s*Ha[Bb]racha)\b/i,
     ],
     group: null,
-    navType: "sequential",
+    navType: "topic",
+    extractNav: extractParsha,
     sortDefault: "newest",
   },
   {
@@ -193,7 +243,8 @@ export const SERIES: SeriesDef[] = [
       /^Tu\s+B/i,
     ],
     group: null,
-    navType: "sequential",
+    navType: "topic",
+    extractNav: extractYomTov,
     sortDefault: "newest",
   },
 
@@ -237,3 +288,4 @@ export function matchTitleToSeries(title: string): SeriesDef | undefined {
   }
   return undefined;
 }
+

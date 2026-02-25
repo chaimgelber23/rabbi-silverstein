@@ -1,4 +1,5 @@
 import { fetchFromRss } from "./rss";
+import { fetchCustomShiurim } from "./customData";
 import type { Shiur } from "./types";
 
 function normalizeTitle(title: string): string {
@@ -6,16 +7,28 @@ function normalizeTitle(title: string): string {
 }
 
 export async function fetchAllShiurim(): Promise<Shiur[]> {
-  const rssShiurim = await fetchFromRss();
+  const [rssShiurim, customShiurim] = await Promise.all([
+    fetchFromRss(),
+    fetchCustomShiurim(),
+  ]);
 
-  const byTitle = new Map<string, Shiur>();
+  const byKey = new Map<string, Shiur>();
+
+  // RSS shiurim keyed by normalized title (existing dedup logic)
   for (const shiur of rssShiurim) {
     const key = normalizeTitle(shiur.title);
-    if (key) byTitle.set(key, shiur);
+    if (key) byKey.set(key, shiur);
   }
 
-  const merged = Array.from(byTitle.values());
-  merged.sort((a, b) => new Date(b.pubDate).getTime() - new Date(a.pubDate).getTime());
+  // Custom shiurim keyed by id to never collide with RSS
+  for (const shiur of customShiurim) {
+    byKey.set(`custom:${shiur.id}`, shiur);
+  }
+
+  const merged = Array.from(byKey.values());
+  merged.sort(
+    (a, b) => new Date(b.pubDate).getTime() - new Date(a.pubDate).getTime()
+  );
 
   return merged;
 }

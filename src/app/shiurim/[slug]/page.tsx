@@ -1,21 +1,27 @@
 import { notFound } from "next/navigation";
 import { getSeriesShiurim, getSeriesNavSections, getGroupShiurim } from "@/lib/seriesData";
-import { getSeriesBySlug, getAllSlugs, getGroupInfo } from "@/lib/seriesConfig";
+import { getAllSlugs } from "@/lib/seriesConfig";
+import {
+  getSeriesBySlugWithCustom,
+  getGroupInfoWithCustom,
+} from "@/lib/seriesConfigServer";
 import SeriesPageClient from "@/components/shiurim/SeriesPageClient";
 
 export const revalidate = 3600;
 
 export async function generateStaticParams() {
+  // Only pre-render hardcoded slugs at build time
+  // Custom slugs render on-demand via ISR (dynamicParams = true by default)
   return getAllSlugs().map((slug) => ({ slug }));
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const series = getSeriesBySlug(slug);
+  const series = await getSeriesBySlugWithCustom(slug);
   if (series) {
     return { title: `${series.name} | Rabbi Odom Silverstein`, description: series.description };
   }
-  const group = getGroupInfo(slug);
+  const group = await getGroupInfoWithCustom(slug);
   if (group) {
     return { title: `${group.label} | Rabbi Odom Silverstein`, description: group.description };
   }
@@ -26,7 +32,7 @@ export default async function SeriesPage({ params }: { params: Promise<{ slug: s
   const { slug } = await params;
 
   // Check if it's a group slug (e.g., "nefesh-hachaim", "tanya", "bitachon")
-  const group = getGroupInfo(slug);
+  const group = await getGroupInfoWithCustom(slug);
   if (group) {
     const shiurim = await getGroupShiurim(slug);
     return (
@@ -35,7 +41,7 @@ export default async function SeriesPage({ params }: { params: Promise<{ slug: s
           slug,
           name: group.label,
           description: group.description,
-          group: slug as "nefesh-hachaim" | "tanya" | "bitachon",
+          group: slug,
           navType: "sequential",
           sortDefault: "oldest",
         }}
@@ -46,7 +52,7 @@ export default async function SeriesPage({ params }: { params: Promise<{ slug: s
   }
 
   // Regular series slug
-  const series = getSeriesBySlug(slug);
+  const series = await getSeriesBySlugWithCustom(slug);
   if (!series) notFound();
 
   const [shiurim, navSections] = await Promise.all([

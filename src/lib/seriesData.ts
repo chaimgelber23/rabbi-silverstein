@@ -1,15 +1,23 @@
 import { fetchAllShiurim } from "./shiurim";
-import { SERIES, SERIES_GROUPS, getGroupSeriesPatterns } from "./seriesConfig";
+import { getAllSeriesWithCustom, getAllGroupsWithCustom } from "./seriesConfigServer";
 import type { Shiur, SeriesStats } from "./types";
 
 export async function getSeriesShiurim(slug: string): Promise<Shiur[]> {
-  const series = SERIES.find((s) => s.slug === slug);
+  const allSeries = await getAllSeriesWithCustom();
+  const series = allSeries.find((s) => s.slug === slug);
   if (!series) return [];
 
   const allShiurim = await fetchAllShiurim();
-  return allShiurim.filter((shiur) =>
-    series.patterns.some((p) => p.test(shiur.title))
-  );
+
+  if (series.patterns.length > 0) {
+    // RSS-based series: match by title patterns
+    return allShiurim.filter((shiur) =>
+      series.patterns.some((p) => p.test(shiur.title))
+    );
+  } else {
+    // Custom series: match by categoryId (set to seriesSlug on upload)
+    return allShiurim.filter((shiur) => shiur.categoryId === slug);
+  }
 }
 
 export async function getLandingData(): Promise<{
@@ -24,13 +32,23 @@ export async function getLandingData(): Promise<{
   latestShiurim: Shiur[];
 }> {
   const allShiurim = await fetchAllShiurim();
+  const allSeries = await getAllSeriesWithCustom();
+  const allGroups = await getAllGroupsWithCustom();
 
   const allStats: SeriesStats[] = [];
 
-  for (const series of SERIES) {
-    const matching = allShiurim.filter((shiur) =>
-      series.patterns.some((p) => p.test(shiur.title))
-    );
+  for (const series of allSeries) {
+    let matching: Shiur[];
+
+    if (series.patterns.length > 0) {
+      matching = allShiurim.filter((shiur) =>
+        series.patterns.some((p) => p.test(shiur.title))
+      );
+    } else {
+      matching = allShiurim.filter(
+        (shiur) => shiur.categoryId === series.slug
+      );
+    }
 
     if (matching.length > 0) {
       const latestDate = matching.reduce(
@@ -54,12 +72,7 @@ export async function getLandingData(): Promise<{
     .filter((s) => s.group === null)
     .sort((a, b) => b.episodeCount - a.episodeCount);
 
-  const groups = (
-    Object.entries(SERIES_GROUPS) as [
-      string,
-      { label: string; description: string },
-    ][]
-  )
+  const groups = Object.entries(allGroups)
     .map(([id, meta]) => ({
       id,
       label: meta.label,
@@ -85,18 +98,44 @@ export async function getLandingData(): Promise<{
 }
 
 export async function getGroupShiurim(groupId: string): Promise<Shiur[]> {
-  const patterns = getGroupSeriesPatterns(groupId);
-  if (patterns.length === 0) return [];
-
   const allShiurim = await fetchAllShiurim();
+  const allSeries = await getAllSeriesWithCustom();
+
+  // Get all series in this group
+  const groupSeries = allSeries.filter((s) => s.group === groupId);
+  if (groupSeries.length === 0) return [];
+
+  // Collect matching shiurim from all series in the group
   return allShiurim.filter((shiur) =>
-    patterns.some((p) => p.test(shiur.title))
+    groupSeries.some((series) => {
+      if (series.patterns.length > 0) {
+        return series.patterns.some((p) => p.test(shiur.title));
+      }
+      return shiur.categoryId === series.slug;
+    })
   );
 }
 
 export async function getSeriesNavSections(slug: string): Promise<string[]> {
-  const series = SERIES.find((s) => s.slug === slug);
-  if (!series?.extractNav) return [];
+  const allSeries = await getAllSeriesWithCustom();
+  const series = allSeries.find((s) => s.slug === slug);
+  if (!series?.extractNav) {
+    // For custom perek-based series, extract perek numbers from title
+    if (series && series.navType === "perek" && series.patterns.length === 0) {
+      const shiurim = await getSeriesShiurim(slug);
+      const sections = new Set<string>();
+      for (const shiur of shiurim) {
+        const perekMatch = shiur.title.match(/Perek\s+(\d+)/i);
+        if (perekMatch) sections.add(`Perek ${perekMatch[1]}`);
+      }
+      return Array.from(sections).sort((a, b) => {
+        const numA = parseInt(a.replace(/\D/g, ""));
+        const numB = parseInt(b.replace(/\D/g, ""));
+        return numA - numB;
+      });
+    }
+    return [];
+  }
 
   const shiurim = await getSeriesShiurim(slug);
   const sections = new Set<string>();

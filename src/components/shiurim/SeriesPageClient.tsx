@@ -95,7 +95,9 @@ export default function SeriesPageClient({ series, shiurim, navSections }: {
 
           {series.navType === "topic" && navSections.length > 0 && (
             <div className="mb-8">
-              <h3 className="text-brown/60 text-sm font-semibold mb-3 uppercase tracking-wider">Browse by Topic</h3>
+              <h3 className="text-brown/60 text-sm font-semibold mb-3 uppercase tracking-wider">
+                {series.slug === "parsha" ? "Browse by Parsha" : series.slug === "holidays" ? "Browse by Yom Tov" : "Browse by Topic"}
+              </h3>
               <div className="flex flex-wrap gap-2">
                 <button onClick={() => handleSectionChange(null)}
                   className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${!selectedSection ? "bg-amber text-white" : "bg-white border border-amber/20 text-brown/60 hover:border-amber/40"}`}>

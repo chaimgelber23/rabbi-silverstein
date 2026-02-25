@@ -22,7 +22,7 @@ export interface PlayerState {
 
 export type SortOrder = "newest" | "oldest";
 export type NavType = "sequential" | "perek" | "topic" | "parsha";
-export type SeriesGroup = "nefesh-hachaim" | "tanya" | "bitachon" | null;
+export type SeriesGroup = string | null;
 
 export interface SeriesDef {
   slug: string;

@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useAuth } from "./AuthProvider";
 import AuthModal from "./AuthModal";
+import { isAdmin } from "@/lib/admin";
 
 export default function Navbar() {
   const { user } = useAuth();
@@ -35,6 +36,11 @@ export default function Navbar() {
             <Link href="/my-learning" className="text-white/80 hover:text-amber transition-colors text-sm font-medium">
               My Learning
             </Link>
+            {user && isAdmin() && (
+              <Link href="/admin" className="text-amber hover:text-amber-light transition-colors text-sm font-semibold">
+                Upload
+              </Link>
+            )}
             {user ? (
               <Link href="/profile" className="flex items-center gap-2 text-white/80 hover:text-amber text-sm font-medium transition-colors">
                 <div className="w-7 h-7 bg-amber/20 rounded-full flex items-center justify-center">
@@ -71,6 +77,11 @@ export default function Navbar() {
             <Link href="/my-learning" onClick={() => setMobileOpen(false)} className="block text-white/80 hover:text-amber transition-colors font-medium">
               My Learning
             </Link>
+            {user && isAdmin() && (
+              <Link href="/admin" onClick={() => setMobileOpen(false)} className="block text-amber hover:text-amber-light font-semibold transition-colors">
+                Upload Shiur
+              </Link>
+            )}
             {user ? (
               <Link href="/profile" onClick={() => setMobileOpen(false)} className="block text-white/80 hover:text-amber font-medium transition-colors">
                 My Account

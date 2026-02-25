@@ -11,7 +11,7 @@ const stagger = { visible: { transition: { staggerChildren: 0.15 } } };
 export default function SeriesHero({ name, description, group, episodeCount }: {
   name: string; description: string; group: SeriesGroup; episodeCount: number;
 }) {
-  const groupMeta = group ? SERIES_GROUPS[group] : null;
+  const groupMeta = group ? (SERIES_GROUPS as Record<string, { label: string; description: string }>)[group] : null;
 
   return (
     <section className="bg-brown py-20 px-6">
