@@ -78,6 +78,7 @@ export default function AdminClient() {
   const [recentUploads, setRecentUploads] = useState<RecentUpload[]>([]);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [showRecent, setShowRecent] = useState(false);
+  const [uploadSearch, setUploadSearch] = useState("");
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
 
@@ -978,10 +979,28 @@ export default function AdminClient() {
 
             {showRecent && (
               <div className="mt-4 space-y-2">
+                {recentUploads.length > 0 && (
+                  <input
+                    type="text"
+                    value={uploadSearch}
+                    onChange={(e) => setUploadSearch(e.target.value)}
+                    placeholder="Search uploads..."
+                    className="w-full border border-brown/15 rounded-xl px-4 py-2.5 text-brown text-sm bg-white focus:outline-none focus:ring-2 focus:ring-amber/50 mb-2"
+                  />
+                )}
                 {recentUploads.length === 0 ? (
                   <p className="text-brown/40 text-sm py-4 text-center">No uploads yet</p>
                 ) : (
-                  recentUploads.map((upload) => (
+                  recentUploads
+                    .filter((u) => {
+                      if (!uploadSearch.trim()) return true;
+                      const q = uploadSearch.toLowerCase();
+                      return (
+                        u.title.toLowerCase().includes(q) ||
+                        u.seriesSlug.toLowerCase().includes(q)
+                      );
+                    })
+                    .map((upload) => (
                     <div
                       key={upload.id}
                       className="flex items-center justify-between bg-white border border-brown/10 rounded-xl px-4 py-3"
