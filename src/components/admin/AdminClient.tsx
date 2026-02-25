@@ -79,6 +79,7 @@ export default function AdminClient() {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [showRecent, setShowRecent] = useState(false);
   const [uploadSearch, setUploadSearch] = useState("");
+  const [selectedGroup, setSelectedGroup] = useState<string | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
 
@@ -144,20 +145,38 @@ export default function AdminClient() {
     );
   }
 
-  // Merge all series for dropdown
-  const allSeriesOptions = [
-    ...SERIES.map((s) => ({
-      slug: s.slug,
-      name: s.group
-        ? `${(SERIES_GROUPS as Record<string, { label: string }>)[s.group]?.label || s.group} — ${s.name}`
-        : s.slug === "other"
-          ? "Other / Talks & Events"
-          : s.name,
-    })),
-    ...customSeries.map((s) => ({ slug: s.slug, name: s.name })),
-  ];
+  // Build top-level options: groups as single items + standalone series
+  const groupIds = new Set(SERIES.filter((s) => s.group).map((s) => s.group!));
+  const topLevelOptions: { slug: string; name: string; type: "group" | "series" }[] = [];
 
-  // Merge all groups for dropdown
+  // Add groups as single entries (Nefesh HaChaim, Tanya, Bitachon)
+  for (const gid of groupIds) {
+    const groupInfo = (SERIES_GROUPS as Record<string, { label: string }>)[gid];
+    if (groupInfo) {
+      topLevelOptions.push({ slug: gid, name: groupInfo.label, type: "group" });
+    }
+  }
+
+  // Add standalone series (not part of a group, and not "other")
+  for (const s of SERIES) {
+    if (!s.group && s.slug !== "other") {
+      topLevelOptions.push({ slug: s.slug, name: s.name, type: "series" });
+    }
+  }
+
+  // Add custom series
+  for (const s of customSeries) {
+    topLevelOptions.push({ slug: s.slug, name: s.name, type: "series" });
+  }
+
+  // Add "Other / Talks & Events" last
+  topLevelOptions.push({ slug: "other", name: "Other / Talks & Events", type: "series" });
+
+  // Sub-series within a selected group
+  const subSeriesForGroup = (groupSlug: string) =>
+    SERIES.filter((s) => s.group === groupSlug);
+
+  // Merge all groups for new-series form
   const allGroupOptions = [
     ...Object.entries(SERIES_GROUPS).map(([id, g]) => ({
       slug: id,
@@ -364,26 +383,66 @@ export default function AdminClient() {
                 Which sefer is this shiur for?
               </label>
               <select
-                value={state.seriesSlug}
+                value={selectedGroup || state.seriesSlug}
                 onChange={(e) => {
-                  update({
-                    seriesSlug: e.target.value,
-                    seriesName:
-                      allSeriesOptions.find((s) => s.slug === e.target.value)
-                        ?.name || "",
-                    isNewSeries: false,
-                  });
+                  const val = e.target.value;
+                  const opt = topLevelOptions.find((o) => o.slug === val);
+                  if (opt?.type === "group") {
+                    // Selected a group — show sub-series picker
+                    setSelectedGroup(val);
+                    update({ seriesSlug: "", seriesName: "", isNewSeries: false });
+                  } else {
+                    // Selected a standalone series
+                    setSelectedGroup(null);
+                    update({
+                      seriesSlug: val,
+                      seriesName: opt?.name || "",
+                      isNewSeries: false,
+                    });
+                  }
                 }}
                 className="w-full border border-brown/20 rounded-xl px-4 py-3.5 text-brown bg-white focus:outline-none focus:ring-2 focus:ring-amber/50 text-base"
               >
                 <option value="">Select a sefer...</option>
-                {allSeriesOptions.map((s) => (
+                {topLevelOptions.map((s) => (
                   <option key={s.slug} value={s.slug}>
                     {s.name}
                   </option>
                 ))}
               </select>
             </div>
+
+            {/* Sub-series picker when a group is selected */}
+            {selectedGroup && (
+              <div>
+                <label className="block text-brown font-semibold text-sm mb-2">
+                  Which part of {(SERIES_GROUPS as Record<string, { label: string }>)[selectedGroup]?.label}?
+                </label>
+                <select
+                  value={state.seriesSlug}
+                  onChange={(e) => {
+                    const sub = subSeriesForGroup(selectedGroup).find(
+                      (s) => s.slug === e.target.value
+                    );
+                    update({
+                      seriesSlug: e.target.value,
+                      seriesName: sub
+                        ? `${(SERIES_GROUPS as Record<string, { label: string }>)[selectedGroup]?.label} — ${sub.name}`
+                        : "",
+                      isNewSeries: false,
+                    });
+                  }}
+                  className="w-full border border-brown/20 rounded-xl px-4 py-3.5 text-brown bg-white focus:outline-none focus:ring-2 focus:ring-amber/50 text-base"
+                >
+                  <option value="">Select...</option>
+                  {subSeriesForGroup(selectedGroup).map((s) => (
+                    <option key={s.slug} value={s.slug}>
+                      {s.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
 
             <div className="relative flex items-center gap-4">
               <div className="flex-1 border-t border-brown/10" />
@@ -393,6 +452,7 @@ export default function AdminClient() {
 
             <button
               onClick={() => {
+                setSelectedGroup(null);
                 update({ isNewSeries: true, seriesSlug: "" });
                 setStep("new-series");
               }}
