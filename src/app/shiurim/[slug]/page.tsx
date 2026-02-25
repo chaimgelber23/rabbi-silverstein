@@ -6,6 +6,7 @@ import {
   getGroupInfoWithCustom,
 } from "@/lib/seriesConfigServer";
 import SeriesPageClient from "@/components/shiurim/SeriesPageClient";
+import { SeriesJsonLd } from "@/components/seo/SeriesJsonLd";
 
 export const revalidate = 3600;
 
@@ -17,14 +18,34 @@ export async function generateStaticParams() {
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
+  const url = `https://rabbi-silverstein.vercel.app/shiurim/${slug}`;
+
   const series = await getSeriesBySlugWithCustom(slug);
   if (series) {
-    return { title: `${series.name} | Rabbi Odom Silverstein`, description: series.description };
+    const title = series.name;
+    const description = series.description || `Torah shiurim on ${series.name} by Rabbi Odom Silverstein.`;
+    return {
+      title,
+      description,
+      alternates: { canonical: `/shiurim/${slug}` },
+      openGraph: { title: `${title} | Rabbi Odom Silverstein`, description, url, type: "website" },
+      twitter: { card: "summary" as const, title: `${title} | Rabbi Odom Silverstein`, description },
+    };
   }
+
   const group = await getGroupInfoWithCustom(slug);
   if (group) {
-    return { title: `${group.label} | Rabbi Odom Silverstein`, description: group.description };
+    const title = group.label;
+    const description = group.description || `${group.label} shiurim by Rabbi Odom Silverstein.`;
+    return {
+      title,
+      description,
+      alternates: { canonical: `/shiurim/${slug}` },
+      openGraph: { title: `${title} | Rabbi Odom Silverstein`, description, url, type: "website" },
+      twitter: { card: "summary" as const, title: `${title} | Rabbi Odom Silverstein`, description },
+    };
   }
+
   return {};
 }
 
@@ -36,18 +57,21 @@ export default async function SeriesPage({ params }: { params: Promise<{ slug: s
   if (group) {
     const shiurim = await getGroupShiurim(slug);
     return (
-      <SeriesPageClient
-        series={{
-          slug,
-          name: group.label,
-          description: group.description,
-          group: slug,
-          navType: "sequential",
-          sortDefault: "oldest",
-        }}
-        shiurim={shiurim}
-        navSections={[]}
-      />
+      <>
+        <SeriesJsonLd slug={slug} name={group.label} description={group.description} shiurim={shiurim} />
+        <SeriesPageClient
+          series={{
+            slug,
+            name: group.label,
+            description: group.description,
+            group: slug,
+            navType: "sequential",
+            sortDefault: "oldest",
+          }}
+          shiurim={shiurim}
+          navSections={[]}
+        />
+      </>
     );
   }
 
@@ -70,10 +94,13 @@ export default async function SeriesPage({ params }: { params: Promise<{ slug: s
   };
 
   return (
-    <SeriesPageClient
-      series={seriesInfo}
-      shiurim={shiurim}
-      navSections={navSections}
-    />
+    <>
+      <SeriesJsonLd slug={slug} name={series.name} description={series.description} shiurim={shiurim} />
+      <SeriesPageClient
+        series={seriesInfo}
+        shiurim={shiurim}
+        navSections={navSections}
+      />
+    </>
   );
 }

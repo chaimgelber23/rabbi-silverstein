@@ -3,6 +3,7 @@
 import { createContext, useContext, useRef, useState, useCallback, useEffect, type ReactNode } from "react";
 import type { Shiur, PlayerState } from "@/lib/types";
 import { getShiurProgress, saveShiurProgress, saveSeriesProgress } from "@/lib/progress";
+import { track } from "@vercel/analytics";
 
 interface AudioPlayerContextType {
   playerState: PlayerState;
@@ -57,6 +58,7 @@ export function AudioPlayerProvider({ children }: { children: ReactNode }) {
           lastListened: new Date().toISOString(), completed: true,
         });
         if (seriesSlugRef.current) saveSeriesProgress(seriesSlugRef.current, shiur.id);
+        track("shiur_completed", { title: shiur.title, series: seriesSlugRef.current || "unknown" });
       }
       if (nextShiurRef.current) {
         const next = nextShiurRef.current;
@@ -124,6 +126,7 @@ export function AudioPlayerProvider({ children }: { children: ReactNode }) {
       audio.currentTime = startTime;
       audio.play();
       setPlayerState((prev) => ({ ...prev, currentShiur: shiur, isPlaying: true, currentTime: startTime }));
+      track("shiur_play", { title: shiur.title, series: seriesSlug || "unknown" });
     }
   }, [playerState.currentShiur?.id]);
 

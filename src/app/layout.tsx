@@ -27,19 +27,53 @@ const frankRuhl = Frank_Ruhl_Libre({
   weight: ["300", "400", "700"],
 });
 
+const siteUrl = "https://rabbi-silverstein.vercel.app";
+const siteName = "Rabbi Odom Silverstein | Torah Shiurim";
+const siteDescription =
+  "Learn Torah with Rabbi Odom Silverstein. 5 Minute Nefesh HaChaim, 5 Minute Tanya, Bitachon, Parsha, and more. Clear and concise shiurim for daily growth.";
+
 export const metadata: Metadata = {
-  title: "Rabbi Odom Silverstein | Torah Shiurim",
-  description:
-    "Learn Torah with Rabbi Odom Silverstein. 5 Minute Nefesh HaChaim, 5 Minute Tanya, Bitachon, Parsha, and more. Clear and concise shiurim for daily growth.",
+  title: {
+    default: siteName,
+    template: "%s | Rabbi Odom Silverstein",
+  },
+  description: siteDescription,
   keywords: [
     "Rabbi Odom Silverstein",
+    "Rabbi Silverstein",
     "Nefesh HaChaim",
     "Tanya",
     "Bitachon",
     "Parsha",
     "Torah shiurim",
     "Jewish podcasts",
+    "Torah lectures",
+    "daily Torah",
+    "Jewish learning",
+    "Chassidus",
+    "Mussar",
+    "Torah audio",
+    "shiur",
   ],
+  metadataBase: new URL(siteUrl),
+  alternates: { canonical: "/" },
+  openGraph: {
+    type: "website",
+    locale: "en_US",
+    url: siteUrl,
+    siteName,
+    title: siteName,
+    description: siteDescription,
+  },
+  twitter: {
+    card: "summary",
+    title: siteName,
+    description: siteDescription,
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
 };
 
 export default function RootLayout({
@@ -49,6 +83,30 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "WebSite",
+              name: siteName,
+              url: siteUrl,
+              description: siteDescription,
+              publisher: {
+                "@type": "Person",
+                name: "Rabbi Odom Silverstein",
+                jobTitle: "Torah Educator",
+              },
+              potentialAction: {
+                "@type": "SearchAction",
+                target: `${siteUrl}/shiurim/{search_term_string}`,
+                "query-input": "required name=search_term_string",
+              },
+            }),
+          }}
+        />
+      </head>
       <body className={`${inter.variable} ${playfair.variable} ${frankRuhl.variable} antialiased`}>
         <AuthProvider>
           <AudioPlayerProvider>
