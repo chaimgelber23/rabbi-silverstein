@@ -116,7 +116,7 @@ export default function MyLearningClient({ allSeries }: { allSeries: SeriesInfo[
     setStats(data.stats);
     setSeriesProgress(data.seriesProgress);
     setLoading(false);
-  }, [allSeries]);
+  }, [allSeries, user]);
 
   if (authLoading) {
     return (

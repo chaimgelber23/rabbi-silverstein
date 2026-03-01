@@ -154,7 +154,7 @@ export default function HomeLanding({ ungrouped, groups, totalCount, allShiurim 
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                   {searchResults.slice(0, 30).map((shiur) => (
                     <ShiurCard key={shiur.id} shiur={shiur}
-                      onPlay={(s) => playShiur(s, false, undefined, getNextShiur(searchResults, s.id))}
+                      onPlay={(s) => playShiur(s, false, s.categoryId, getNextShiur(searchResults, s.id))}
                       isCurrentlyPlaying={playerState.currentShiur?.id === shiur.id && playerState.isPlaying}
                       isCurrent={playerState.currentShiur?.id === shiur.id} />
                   ))}
