@@ -31,7 +31,7 @@ export interface SeriesDef {
   patterns: RegExp[];
   group: SeriesGroup;
   navType: NavType;
-  extractNav?: (title: string) => { section?: string; detail?: string };
+  extractNav?: (shiur: Shiur) => { section?: string; detail?: string };
   sortDefault?: SortOrder;
   displayOrder?: number;
 }

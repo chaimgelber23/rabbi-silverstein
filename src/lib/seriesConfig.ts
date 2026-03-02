@@ -1,40 +1,47 @@
-import type { SeriesDef } from "./types";
+import type { SeriesDef, Shiur } from "./types";
 
-function extractPerek(title: string, prefix: RegExp): { section?: string; detail?: string } {
-  const cleaned = title.replace(prefix, "").trim();
+function extractPerek(shiur: Shiur, prefix: RegExp): { section?: string; detail?: string } {
+  const cleaned = shiur.title.replace(prefix, "").trim();
   const perekMatch = cleaned.match(/^(?:perek\s*)?(\d+)/i);
   return perekMatch ? { section: `Perek ${perekMatch[1]}` } : {};
 }
 
-function extractTanyaPerek(title: string): { section?: string; detail?: string } {
-  const perekMatch = title.match(/Perek\s+(\d+)/i);
+function extractTanyaPerek(shiur: Shiur): { section?: string; detail?: string } {
+  const perekMatch = shiur.title.match(/Perek\s+(\d+)/i);
   return perekMatch ? { section: `Perek ${perekMatch[1]}` } : {};
 }
 
 const PARSHA_NAMES = [
-  "Bereishis","Noach","Lech Lecha","Vayeira","Chayei Sarah","Toldos","Vayeitzei",
-  "Vayishlach","Vayeshev","Mikeitz","Vayigash","Vayechi","Shemos","Va'eira","Bo",
-  "Beshalach","Yisro","Mishpatim","Terumah","Tetzaveh","Ki Sisa","Vayakhel",
-  "Pekudei","Vayikra","Tzav","Shemini","Tazria","Metzora","Acharei Mos","Kedoshim",
-  "Emor","Behar","Bechukosai","Bamidbar","Naso","Beha'aloscha","Shelach","Korach",
-  "Chukas","Balak","Pinchas","Matos","Masei","Devorim","Va'eschanan","Eikev",
-  "Re'eh","Shoftim","Ki Seitzei","Ki Savo","Nitzavim","Vayelech","Ha'azinu",
+  "Bereishis", "Noach", "Lech Lecha", "Vayeira", "Chayei Sarah", "Toldos", "Vayeitzei",
+  "Vayishlach", "Vayeshev", "Mikeitz", "Vayigash", "Vayechi", "Shemos", "Va'eira", "Bo",
+  "Beshalach", "Yisro", "Mishpatim", "Terumah", "Tetzaveh", "Ki Sisa", "Vayakhel",
+  "Pekudei", "Vayikra", "Tzav", "Shemini", "Tazria", "Metzora", "Acharei Mos", "Kedoshim",
+  "Emor", "Behar", "Bechukosai", "Bamidbar", "Naso", "Beha'aloscha", "Shelach", "Korach",
+  "Chukas", "Balak", "Pinchas", "Matos", "Masei", "Devorim", "Va'eschanan", "Eikev",
+  "Re'eh", "Shoftim", "Ki Seitzei", "Ki Savo", "Nitzavim", "Vayelech", "Ha'azinu",
   "V'Zos HaBracha",
 ];
 
-function extractParsha(title: string): { section?: string; detail?: string } {
+function extractParsha(shiur: Shiur): { section?: string; detail?: string } {
   // Try to match "Parshas X" or "Parshat X" first
-  const parshasMatch = title.match(/^Parshas?\s+(.+?)(?:\s+\d{4}|\s+578[2-6]|\s*$)/i);
+  const parshasMatch = shiur.title.match(/^Parshas?\s+(.+?)(?:\s+\d{4}|\s+578[2-6]|\s*$)/i);
   if (parshasMatch) {
     const name = parshasMatch[1].trim();
     return { section: name };
   }
   // Try to match a raw parsha name
   for (const parsha of PARSHA_NAMES) {
-    if (title.toLowerCase().startsWith(parsha.toLowerCase())) {
+    if (shiur.title.toLowerCase().startsWith(parsha.toLowerCase())) {
       return { section: parsha };
     }
   }
+
+  // Fallback for custom uploads explicitly set to 'parsha' but lack matching term
+  if (shiur.categoryId === "parsha") {
+    // If it's explicitly uploaded to parsha but has no obvious title, group as "Other Parshas"
+    return { section: "Other Parshas" };
+  }
+
   return {};
 }
 
@@ -51,12 +58,30 @@ const YOM_TOV_MAP: [RegExp, string][] = [
   [/^Tu\s+B/i, "Tu B'Shvat"],
 ];
 
-function extractYomTov(title: string): { section?: string; detail?: string } {
+function extractYomTov(shiur: Shiur): { section?: string; detail?: string } {
+  // 1. Try matching the exact Yom Tov pattern in the title
   for (const [pattern, name] of YOM_TOV_MAP) {
-    if (pattern.test(title)) {
+    if (pattern.test(shiur.title)) {
       return { section: name };
     }
   }
+
+  // 2. If title didn't match, check if the categoryId or description implies a specific Yom Tov
+  // (e.g. if they explicitly created a "purim" series/category, or mentioned Purim in the description)
+  const catLower = shiur.categoryId?.toLowerCase() || "";
+  const descLower = shiur.description?.toLowerCase() || "";
+  for (const [, name] of YOM_TOV_MAP) {
+    const nameLower = name.toLowerCase();
+    if (catLower.includes(nameLower) || descLower.includes(nameLower)) {
+      return { section: name };
+    }
+  }
+
+  // 3. Fallback for custom manual uploads under the general 'holidays' category
+  if (shiur.categoryId === "holidays") {
+    return { section: "Other Yamim Tovim" };
+  }
+
   return {};
 }
 
@@ -85,8 +110,8 @@ export const SERIES: SeriesDef[] = [
     patterns: [/^Nefesh\s+Ha?[Cc]h?a[yi]+m\s+(Shaar\s+1|Introduction)/i],
     group: "nefesh-hachaim",
     navType: "perek",
-    extractNav: (t) =>
-      extractPerek(t, /^Nefesh\s+Ha?[Cc]h?a[yi]+m\s+Shaar\s+1[,:]?\s*/i),
+    extractNav: (s) =>
+      extractPerek(s, /^Nefesh\s+Ha?[Cc]h?a[yi]+m\s+Shaar\s+1[,:]?\s*/i),
     sortDefault: "oldest",
     displayOrder: 1,
   },
@@ -98,8 +123,8 @@ export const SERIES: SeriesDef[] = [
     patterns: [/^Nefesh\s+Ha?[Cc]h?a[yi]+m\s+Shaar\s+2/i],
     group: "nefesh-hachaim",
     navType: "perek",
-    extractNav: (t) =>
-      extractPerek(t, /^Nefesh\s+Ha?[Cc]h?a[yi]+m\s+Shaar\s+2[,:]?\s*/i),
+    extractNav: (s) =>
+      extractPerek(s, /^Nefesh\s+Ha?[Cc]h?a[yi]+m\s+Shaar\s+2[,:]?\s*/i),
     sortDefault: "oldest",
     displayOrder: 2,
   },
@@ -111,8 +136,8 @@ export const SERIES: SeriesDef[] = [
     patterns: [/^Nefesh\s+Ha?[Cc]h?a[yi]+m\s+Shaar\s+3/i],
     group: "nefesh-hachaim",
     navType: "perek",
-    extractNav: (t) =>
-      extractPerek(t, /^Nefesh\s+Ha?[Cc]h?a[yi]+m\s+Shaar\s+3[,:]?\s*/i),
+    extractNav: (s) =>
+      extractPerek(s, /^Nefesh\s+Ha?[Cc]h?a[yi]+m\s+Shaar\s+3[,:]?\s*/i),
     sortDefault: "oldest",
     displayOrder: 3,
   },
@@ -124,8 +149,8 @@ export const SERIES: SeriesDef[] = [
     patterns: [/^Nefesh\s+Ha?[Cc]h?a[yi]+m\s+Shaar\s+4/i],
     group: "nefesh-hachaim",
     navType: "perek",
-    extractNav: (t) =>
-      extractPerek(t, /^Nefesh\s+Ha?[Cc]h?a[yi]+m\s+Shaar\s+4[,:]?\s*/i),
+    extractNav: (s) =>
+      extractPerek(s, /^Nefesh\s+Ha?[Cc]h?a[yi]+m\s+Shaar\s+4[,:]?\s*/i),
     sortDefault: "oldest",
     displayOrder: 4,
   },

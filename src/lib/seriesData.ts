@@ -10,9 +10,9 @@ export async function getSeriesShiurim(slug: string): Promise<Shiur[]> {
   const allShiurim = await fetchAllShiurim();
 
   if (series.patterns.length > 0) {
-    // RSS-based series: match by title patterns
+    // Match by title patterns OR explicit categoryId assignment
     return allShiurim.filter((shiur) =>
-      series.patterns.some((p) => p.test(shiur.title))
+      shiur.categoryId === slug || series.patterns.some((p) => p.test(shiur.title))
     );
   } else {
     // Custom series: match by categoryId (set to seriesSlug on upload)
@@ -42,7 +42,7 @@ export async function getLandingData(): Promise<{
 
     if (series.patterns.length > 0) {
       matching = allShiurim.filter((shiur) =>
-        series.patterns.some((p) => p.test(shiur.title))
+        shiur.categoryId === series.slug || series.patterns.some((p) => p.test(shiur.title))
       );
     } else {
       matching = allShiurim.filter(
@@ -109,7 +109,7 @@ export async function getGroupShiurim(groupId: string): Promise<Shiur[]> {
   return allShiurim.filter((shiur) =>
     groupSeries.some((series) => {
       if (series.patterns.length > 0) {
-        return series.patterns.some((p) => p.test(shiur.title));
+        return shiur.categoryId === series.slug || series.patterns.some((p) => p.test(shiur.title));
       }
       return shiur.categoryId === series.slug;
     })
@@ -141,7 +141,7 @@ export async function getSeriesNavSections(slug: string): Promise<string[]> {
   const sections = new Set<string>();
 
   for (const shiur of shiurim) {
-    const nav = series.extractNav(shiur.title);
+    const nav = series.extractNav(shiur);
     if (nav.section) sections.add(nav.section);
   }
 
