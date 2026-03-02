@@ -12,9 +12,13 @@ export const metadata: Metadata = {
 export default async function MyLearningPage() {
   const data = await getLandingData();
   const allSeries = [
-    ...data.groups.flatMap((g) => g.series),
-    ...data.ungrouped,
-  ].map((s) => ({ slug: s.slug, name: s.name, episodeCount: s.episodeCount }));
+    ...data.groups.flatMap((g) =>
+      g.series.map((s) => ({ slug: s.slug, name: s.name, episodeCount: s.episodeCount, group: g.id }))
+    ),
+    ...data.ungrouped.map((s) => ({ slug: s.slug, name: s.name, episodeCount: s.episodeCount, group: null as string | null })),
+  ];
 
-  return <MyLearningClient allSeries={allSeries} />;
+  const groups = data.groups.map((g) => ({ id: g.id, label: g.label }));
+
+  return <MyLearningClient allSeries={allSeries} groups={groups} />;
 }
