@@ -33,8 +33,12 @@ export default function SeriesPageClient({ series, shiurim, navSections }: {
       const perekNum = selectedSection.replace(/\D/g, "");
       filtered = filtered.filter((s) => new RegExp(`(?:perek\\s*${perekNum}\\b|\\b${perekNum}\\.\\d|\\b${perekNum}[,:\\s])`, "i").test(s.title));
     } else if (selectedSection && series.navType === "topic") {
-      const lower = selectedSection.toLowerCase();
-      filtered = filtered.filter((s) => s.title.toLowerCase().includes(lower));
+      if (series.slug === "other" && selectedSection === "Uncategorized") {
+        filtered = filtered.filter((s) => s.isUncategorized);
+      } else {
+        const lower = selectedSection.toLowerCase();
+        filtered = filtered.filter((s) => s.title.toLowerCase().includes(lower));
+      }
     }
     filtered.sort((a, b) => {
       const diff = new Date(b.pubDate).getTime() - new Date(a.pubDate).getTime();
@@ -96,7 +100,7 @@ export default function SeriesPageClient({ series, shiurim, navSections }: {
           {series.navType === "topic" && navSections.length > 0 && (
             <div className="mb-8">
               <h3 className="text-brown/60 text-sm font-semibold mb-3 uppercase tracking-wider">
-                {series.slug === "parsha" ? "Browse by Parsha" : series.slug === "holidays" ? "Browse by Yom Tov" : "Browse by Topic"}
+                {series.slug === "parsha" ? "Browse by Parsha" : series.slug === "holidays" ? "Browse by Yom Tov" : series.slug === "other" ? "Filter Shiurim" : "Browse by Topic"}
               </h3>
               <div className="flex flex-wrap gap-2">
                 <button onClick={() => handleSectionChange(null)}

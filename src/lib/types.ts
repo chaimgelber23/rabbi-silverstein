@@ -10,6 +10,7 @@ export interface Shiur {
   categoryId: string;
   subLevel1?: string;
   subLevel2?: string;
+  isUncategorized?: boolean;
 }
 
 export interface PlayerState {

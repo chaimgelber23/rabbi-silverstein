@@ -9,6 +9,21 @@ export async function getSeriesShiurim(slug: string): Promise<Shiur[]> {
 
   const allShiurim = await fetchAllShiurim();
 
+  if (slug === "other") {
+    return allShiurim.map((shiur) => {
+      const isClaimed = allSeries.some(
+        (s) =>
+          s.slug !== "other" &&
+          (shiur.categoryId === s.slug ||
+            (s.patterns.length > 0 && s.patterns.some((p) => p.test(shiur.title))))
+      );
+      return {
+        ...shiur,
+        isUncategorized: !isClaimed,
+      };
+    });
+  }
+
   if (series.patterns.length > 0) {
     // Match by title patterns OR explicit categoryId assignment
     return allShiurim.filter((shiur) =>
@@ -40,7 +55,9 @@ export async function getLandingData(): Promise<{
   for (const series of allSeries) {
     let matching: Shiur[];
 
-    if (series.patterns.length > 0) {
+    if (series.slug === "other") {
+      matching = allShiurim;
+    } else if (series.patterns.length > 0) {
       matching = allShiurim.filter((shiur) =>
         shiur.categoryId === series.slug || series.patterns.some((p) => p.test(shiur.title))
       );
@@ -117,6 +134,11 @@ export async function getGroupShiurim(groupId: string): Promise<Shiur[]> {
 }
 
 export async function getSeriesNavSections(slug: string): Promise<string[]> {
+  if (slug === "other") {
+    const shiurim = await getSeriesShiurim("other");
+    return shiurim.some((s) => s.isUncategorized) ? ["Uncategorized"] : [];
+  }
+
   const allSeries = await getAllSeriesWithCustom();
   const series = allSeries.find((s) => s.slug === slug);
   if (!series?.extractNav) {

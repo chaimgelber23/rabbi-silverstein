@@ -276,11 +276,12 @@ export const SERIES: SeriesDef[] = [
   // Catch-all — MUST be last
   {
     slug: "other",
-    name: "Other Shiurim",
-    description: "Additional shiurim on various Torah topics.",
+    name: "All Shiurim",
+    description: "Browse all shiurim uploaded to the site, including uncategorized talks.",
     patterns: [/.+/],
     group: null,
-    navType: "sequential",
+    navType: "topic",
+    sortDefault: "newest",
   },
 ];
 

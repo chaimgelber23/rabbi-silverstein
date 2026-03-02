@@ -39,9 +39,8 @@ export default function HomeLanding({ ungrouped, groups, totalCount, allShiurim 
   const tabs = useMemo(() => {
     const items: { id: string; label: string; href?: string }[] = [];
     groups.forEach((g) => items.push({ id: `section-${g.id}`, label: g.label }));
-    // Show each ungrouped series by name (skip "Other Shiurim" catch-all)
+    // Show each ungrouped series by name
     ungrouped
-      .filter((s) => s.slug !== "other")
       .forEach((s) => items.push({ id: s.slug, label: s.name, href: `/shiurim/${s.slug}` }));
     return items;
   }, [groups, ungrouped]);
@@ -127,11 +126,10 @@ export default function HomeLanding({ ungrouped, groups, totalCount, allShiurim 
                   <button
                     key={tab.id}
                     onClick={() => scrollToSection(tab.id)}
-                    className={`whitespace-nowrap px-4 py-2 rounded-full text-sm font-medium transition-all ${
-                      activeSection === tab.id
+                    className={`whitespace-nowrap px-4 py-2 rounded-full text-sm font-medium transition-all ${activeSection === tab.id
                         ? "bg-brown text-amber"
                         : "text-brown/50 hover:text-brown hover:bg-brown/5"
-                    }`}
+                      }`}
                   >
                     {tab.label}
                   </button>
