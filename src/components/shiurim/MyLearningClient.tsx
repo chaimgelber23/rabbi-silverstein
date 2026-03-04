@@ -202,27 +202,28 @@ function computeData(allSeries: SeriesInfo[], groups: GroupInfo[], shiurTitles: 
 
   cards.sort((a, b) => new Date(b.lastListened).getTime() - new Date(a.lastListened).getTime());
 
-  // Recently played individual shiurim
-  const recentShiurim: RecentShiur[] = entries
-    .sort((a, b) => new Date(b.lastListened).getTime() - new Date(a.lastListened).getTime())
-    .slice(0, 5)
-    .map((p) => {
-      const seriesInfo = allSeries.find((s) => s.slug === p.seriesSlug);
-      let seriesName = seriesInfo?.name || "";
-      if (seriesInfo?.group) {
-        const g = groupMap.get(seriesInfo.group);
-        if (g) seriesName = `${g.label} — ${seriesName}`;
-      }
-      return {
-        shiurId: p.shiurId,
-        shiurTitle: shiurTitles[p.shiurId] || p.shiurId.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()),
-        seriesSlug: p.seriesSlug || "",
-        seriesName,
-        progress: p.duration > 0 ? Math.min(100, Math.round((p.currentTime / p.duration) * 100)) : 0,
-        lastListened: p.lastListened,
-        completed: p.completed,
-      };
-    });
+  // Build ALL individual shiurim items (for stat tile drill-down)
+  const sortedEntries = [...entries].sort((a, b) => new Date(b.lastListened).getTime() - new Date(a.lastListened).getTime());
+  const allShiurItems: RecentShiur[] = sortedEntries.map((p) => {
+    const seriesInfo = allSeries.find((s) => s.slug === p.seriesSlug);
+    let seriesName = seriesInfo?.name || "";
+    if (seriesInfo?.group) {
+      const g = groupMap.get(seriesInfo.group);
+      if (g) seriesName = `${g.label} — ${seriesName}`;
+    }
+    return {
+      shiurId: p.shiurId,
+      shiurTitle: shiurTitles[p.shiurId] || p.shiurId.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()),
+      seriesSlug: p.seriesSlug || "",
+      seriesName,
+      progress: p.duration > 0 ? Math.min(100, Math.round((p.currentTime / p.duration) * 100)) : 0,
+      lastListened: p.lastListened,
+      completed: p.completed,
+    };
+  });
+
+  // Recently played = top 5
+  const recentShiurim = allShiurItems.slice(0, 5);
 
   const streak = computeStreak(entries);
 
@@ -235,7 +236,7 @@ function computeData(allSeries: SeriesInfo[], groups: GroupInfo[], shiurTitles: 
     streak,
   };
 
-  return { stats, cards, recentShiurim };
+  return { stats, cards, recentShiurim, allShiurItems };
 }
 
 function formatRelativeTime(isoDate: string): string {
@@ -277,14 +278,17 @@ export default function MyLearningClient({ allSeries, groups, shiurTitles }: { a
   const [stats, setStats] = useState<LearningStats>({ totalShiurim: 0, completedShiurim: 0, inProgressShiurim: 0, seriesStarted: 0, totalMinutes: 0, streak: 0 });
   const [cards, setCards] = useState<GroupedSeriesCard[]>([]);
   const [recentShiurim, setRecentShiurim] = useState<RecentShiur[]>([]);
+  const [allShiurItems, setAllShiurItems] = useState<RecentShiur[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<TabId>("all");
+  const [statsView, setStatsView] = useState<TabId | null>(null);
 
   useEffect(() => {
     const data = computeData(allSeries, groups, shiurTitles);
     setStats(data.stats);
     setCards(data.cards);
     setRecentShiurim(data.recentShiurim);
+    setAllShiurItems(data.allShiurItems);
     setLoading(false);
   }, [allSeries, groups, user]);
 
@@ -293,6 +297,14 @@ export default function MyLearningClient({ allSeries, groups, shiurTitles }: { a
     if (activeTab === "in-progress") return cards.filter((c) => c.completedCount < c.episodeCount);
     return cards.filter((c) => c.completedCount >= c.episodeCount && c.episodeCount > 0);
   }, [cards, activeTab]);
+
+  const filteredShiurItems = useMemo(() => {
+    if (!statsView) return [];
+    if (statsView === "all") return allShiurItems;
+    if (statsView === "completed") return allShiurItems.filter((s) => s.completed);
+    if (statsView === "in-progress") return allShiurItems.filter((s) => !s.completed);
+    return allShiurItems;
+  }, [allShiurItems, statsView]);
 
   if (authLoading) {
     return (
@@ -380,11 +392,11 @@ export default function MyLearningClient({ allSeries, groups, shiurTitles }: { a
                 ] as { label: string; value: number; tab: TabId }[]).map((item) => (
                   <button
                     key={item.label}
-                    onClick={() => { setActiveTab(item.tab); window.scrollTo({ top: document.getElementById("series-list-anchor")?.offsetTop ?? 600, behavior: "smooth" }); }}
-                    className={`bg-white border rounded-xl p-4 text-center shadow-sm transition-all hover:shadow-md cursor-pointer ${activeTab === item.tab ? "border-amber bg-amber/5 ring-1 ring-amber/30" : "border-amber/15 hover:border-amber/30"}`}
+                    onClick={() => { setStatsView(statsView === item.tab ? null : item.tab); setTimeout(() => document.getElementById("shiur-detail-anchor")?.scrollIntoView({ behavior: "smooth", block: "start" }), 100); }}
+                    className={`bg-white border rounded-xl p-4 text-center shadow-sm transition-all hover:shadow-md cursor-pointer ${statsView === item.tab ? "border-amber bg-amber/5 ring-1 ring-amber/30" : "border-amber/15 hover:border-amber/30"}`}
                   >
                     <p className="text-brown text-2xl font-bold">{item.value}</p>
-                    <p className={`text-xs mt-1 font-medium ${activeTab === item.tab ? "text-amber" : "text-brown/50"}`}>{item.label}</p>
+                    <p className={`text-xs mt-1 font-medium ${statsView === item.tab ? "text-amber" : "text-brown/50"}`}>{item.label}</p>
                   </button>
                 ))}
                 {[
@@ -427,6 +439,53 @@ export default function MyLearningClient({ allSeries, groups, shiurTitles }: { a
                       </Link>
                     ))}
                   </div>
+                </div>
+              )}
+
+              {/* Individual Shiurim Drill-down (when stat tile is active) */}
+              {statsView && (
+                <div id="shiur-detail-anchor" className="mb-10">
+                  <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-brown font-bold text-xl">
+                      {statsView === "all" ? "All Shiurim Started" : statsView === "completed" ? "Completed Shiurim" : "In Progress Shiurim"}
+                    </h2>
+                    <button
+                      onClick={() => setStatsView(null)}
+                      className="text-brown/50 text-sm font-medium hover:text-brown transition-colors flex items-center gap-1"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                      Close
+                    </button>
+                  </div>
+                  {filteredShiurItems.length === 0 ? (
+                    <p className="text-brown/40 text-center py-8">No shiurim to show.</p>
+                  ) : (
+                    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                      {filteredShiurItems.map((rs) => (
+                        <Link
+                          key={rs.shiurId}
+                          href={`/shiurim/${rs.seriesSlug}`}
+                          className="bg-white border border-amber/15 rounded-xl p-4 shadow-sm hover:shadow-md hover:border-amber/30 transition-all group flex items-center gap-3"
+                        >
+                          <div className="shrink-0 w-10 h-10 rounded-full bg-amber/10 flex items-center justify-center">
+                            {rs.completed ? (
+                              <svg className="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                            ) : (
+                              <svg className="w-4 h-4 text-amber" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg>
+                            )}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-brown font-semibold text-sm truncate group-hover:text-amber transition-colors">{rs.shiurTitle}</p>
+                            <p className="text-brown/40 text-xs truncate">{rs.seriesName}</p>
+                          </div>
+                          <div className="shrink-0 text-right">
+                            <p className="text-amber text-xs font-semibold">{rs.completed ? "Done" : `${rs.progress}%`}</p>
+                            <p className="text-brown/30 text-[10px]">{formatRelativeTime(rs.lastListened)}</p>
+                          </div>
+                        </Link>
+                      ))}
+                    </div>
+                  )}
                 </div>
               )}
 
