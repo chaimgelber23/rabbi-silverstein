@@ -48,6 +48,7 @@ interface RecentShiur {
   shiurId: string;
   seriesSlug: string;
   seriesName: string;
+  shiurTitle: string;
   progress: number;
   lastListened: string;
   completed: boolean;
@@ -101,7 +102,7 @@ function computeStreak(entries: { lastListened: string }[]): number {
   return streak;
 }
 
-function computeData(allSeries: SeriesInfo[], groups: GroupInfo[]) {
+function computeData(allSeries: SeriesInfo[], groups: GroupInfo[], shiurTitles: Record<string, string>) {
   const all = getAllProgress();
   const entries = Object.values(all).filter((p) => p.currentTime > 10);
   const completed = entries.filter((p) => p.completed);
@@ -214,6 +215,7 @@ function computeData(allSeries: SeriesInfo[], groups: GroupInfo[]) {
       }
       return {
         shiurId: p.shiurId,
+        shiurTitle: shiurTitles[p.shiurId] || p.shiurId.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()),
         seriesSlug: p.seriesSlug || "",
         seriesName,
         progress: p.duration > 0 ? Math.min(100, Math.round((p.currentTime / p.duration) * 100)) : 0,
@@ -269,7 +271,7 @@ const TABS: { id: TabId; label: string }[] = [
 /*  Component                                                          */
 /* ------------------------------------------------------------------ */
 
-export default function MyLearningClient({ allSeries, groups }: { allSeries: SeriesInfo[]; groups: GroupInfo[] }) {
+export default function MyLearningClient({ allSeries, groups, shiurTitles }: { allSeries: SeriesInfo[]; groups: GroupInfo[]; shiurTitles: Record<string, string> }) {
   const { user, loading: authLoading } = useAuth();
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [stats, setStats] = useState<LearningStats>({ totalShiurim: 0, completedShiurim: 0, inProgressShiurim: 0, seriesStarted: 0, totalMinutes: 0, streak: 0 });
@@ -279,7 +281,7 @@ export default function MyLearningClient({ allSeries, groups }: { allSeries: Ser
   const [activeTab, setActiveTab] = useState<TabId>("all");
 
   useEffect(() => {
-    const data = computeData(allSeries, groups);
+    const data = computeData(allSeries, groups, shiurTitles);
     setStats(data.stats);
     setCards(data.cards);
     setRecentShiurim(data.recentShiurim);
@@ -404,7 +406,7 @@ export default function MyLearningClient({ allSeries, groups }: { allSeries: Ser
                           )}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-brown font-semibold text-sm truncate group-hover:text-amber transition-colors">{rs.shiurId.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}</p>
+                          <p className="text-brown font-semibold text-sm truncate group-hover:text-amber transition-colors">{rs.shiurTitle}</p>
                           <p className="text-brown/40 text-xs truncate">{rs.seriesName}</p>
                         </div>
                         <div className="shrink-0 text-right">

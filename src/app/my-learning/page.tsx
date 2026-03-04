@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import MyLearningClient from "@/components/shiurim/MyLearningClient";
 import { getLandingData } from "@/lib/seriesData";
+import { fetchAllShiurim } from "@/lib/shiurim";
 
 export const revalidate = 3600;
 
@@ -20,5 +21,11 @@ export default async function MyLearningPage() {
 
   const groups = data.groups.map((g) => ({ id: g.id, label: g.label }));
 
-  return <MyLearningClient allSeries={allSeries} groups={groups} />;
+  const allShiurim = await fetchAllShiurim();
+  const shiurTitles = allShiurim.reduce((acc, s) => {
+    acc[s.id] = s.title;
+    return acc;
+  }, {} as Record<string, string>);
+
+  return <MyLearningClient allSeries={allSeries} groups={groups} shiurTitles={shiurTitles} />;
 }
