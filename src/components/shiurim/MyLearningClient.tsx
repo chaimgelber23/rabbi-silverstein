@@ -373,10 +373,21 @@ export default function MyLearningClient({ allSeries, groups, shiurTitles }: { a
             <>
               {/* Stats Overview */}
               <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-10">
+                {([
+                  { label: "Shiurim Started", value: stats.totalShiurim, tab: "all" as TabId },
+                  { label: "Completed", value: stats.completedShiurim, tab: "completed" as TabId },
+                  { label: "In Progress", value: stats.inProgressShiurim, tab: "in-progress" as TabId },
+                ] as { label: string; value: number; tab: TabId }[]).map((item) => (
+                  <button
+                    key={item.label}
+                    onClick={() => { setActiveTab(item.tab); window.scrollTo({ top: document.getElementById("series-list-anchor")?.offsetTop ?? 600, behavior: "smooth" }); }}
+                    className={`bg-white border rounded-xl p-4 text-center shadow-sm transition-all hover:shadow-md cursor-pointer ${activeTab === item.tab ? "border-amber bg-amber/5 ring-1 ring-amber/30" : "border-amber/15 hover:border-amber/30"}`}
+                  >
+                    <p className="text-brown text-2xl font-bold">{item.value}</p>
+                    <p className={`text-xs mt-1 font-medium ${activeTab === item.tab ? "text-amber" : "text-brown/50"}`}>{item.label}</p>
+                  </button>
+                ))}
                 {[
-                  { label: "Shiurim Started", value: stats.totalShiurim },
-                  { label: "Completed", value: stats.completedShiurim },
-                  { label: "In Progress", value: stats.inProgressShiurim },
                   { label: "Series", value: stats.seriesStarted },
                   { label: "Time Listened", value: formatMinutes(stats.totalMinutes) },
                 ].map((item) => (
@@ -420,7 +431,7 @@ export default function MyLearningClient({ allSeries, groups, shiurTitles }: { a
               )}
 
               {/* Tabs */}
-              <div className="flex gap-1 mb-6 border-b border-brown/10">
+              <div id="series-list-anchor" className="flex gap-1 mb-6 border-b border-brown/10">
                 {TABS.map((tab) => (
                   <button
                     key={tab.id}
