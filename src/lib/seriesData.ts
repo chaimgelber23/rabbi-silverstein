@@ -1,5 +1,6 @@
 import { fetchAllShiurim } from "./shiurim";
 import { getAllSeriesWithCustom, getAllGroupsWithCustom } from "./seriesConfigServer";
+import { YOM_TOV_ORDER } from "./seriesConfig";
 import type { Shiur, SeriesStats } from "./types";
 
 export async function getSeriesShiurim(slug: string): Promise<Shiur[]> {
@@ -180,6 +181,18 @@ export async function getSeriesNavSections(slug: string): Promise<string[]> {
   }
 
   return Array.from(sections).sort((a, b) => {
+    if (slug === "holidays") {
+      const idxA = YOM_TOV_ORDER.indexOf(a);
+      const idxB = YOM_TOV_ORDER.indexOf(b);
+      // If a section is not in YOM_TOV_ORDER, handle putting it at the end but before "Other Yamim Tovim"
+      const safeIdxA = idxA !== -1 ? idxA : YOM_TOV_ORDER.indexOf("Other Yamim Tovim") - 0.5;
+      const safeIdxB = idxB !== -1 ? idxB : YOM_TOV_ORDER.indexOf("Other Yamim Tovim") - 0.5;
+
+      if (safeIdxA !== safeIdxB) return safeIdxA - safeIdxB;
+      // Fallback to alphabetical if both aren't found
+      return a.localeCompare(b);
+    }
+
     const numA = parseInt(a.replace(/\D/g, ""));
     const numB = parseInt(b.replace(/\D/g, ""));
     if (!isNaN(numA) && !isNaN(numB)) return numA - numB;

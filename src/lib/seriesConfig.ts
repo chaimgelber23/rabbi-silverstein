@@ -45,8 +45,24 @@ function extractParsha(shiur: Shiur): { section?: string; detail?: string } {
   return {};
 }
 
+export const YOM_TOV_ORDER = [
+  "Rosh Hashana",
+  "Yom Kippur",
+  "Sukkos",
+  "Yud Tes Kislev",
+  "Chanuka",
+  "Tu B'Shvat",
+  "Purim",
+  "Pesach",
+  "Lag B'Omer",
+  "Shavuos",
+  "Other Yamim Tovim"
+];
+
 const YOM_TOV_MAP: [RegExp, string][] = [
   [/^Purim/i, "Purim"],
+  [/Megilla/i, "Purim"],
+  [/Simcha\s+of\s+Hashem/i, "Purim"],
   [/^Chanuk/i, "Chanuka"],
   [/^Rosh\s+Ha[Ss]hana/i, "Rosh Hashana"],
   [/^Yom\s+Kippur/i, "Yom Kippur"],
@@ -257,6 +273,8 @@ export const SERIES: SeriesDef[] = [
       "Shiurim for the Jewish holidays — Purim, Chanuka, Yomim Noraim, and more.",
     patterns: [
       /^Purim/i,
+      /Megilla/i,
+      /Simcha\s+of\s+Hashem/i,
       /^Chanuk/i,
       /^Rosh\s+Ha[Ss]hana/i,
       /^Yom\s+Kippur/i,
