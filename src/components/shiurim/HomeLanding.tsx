@@ -35,12 +35,19 @@ export default function HomeLanding({ ungrouped, groups, totalCount, allShiurim 
 
   const isSearching = searchQuery.trim().length > 0;
 
-  // Build tab items: scroll targets for groups, links for individual series
+  // Build tab items: All Shiurim first, then group scroll-targets, then remaining ungrouped series
   const tabs = useMemo(() => {
     const items: { id: string; label: string; href?: string }[] = [];
+    // "All Shiurim" always goes first as a direct link
+    const allShiurimEntry = ungrouped.find((s) => s.slug === "other");
+    if (allShiurimEntry) {
+      items.push({ id: allShiurimEntry.slug, label: allShiurimEntry.name, href: `/shiurim/${allShiurimEntry.slug}` });
+    }
+    // Then group scroll-targets (Nefesh HaChaim, Tanya, etc.)
     groups.forEach((g) => items.push({ id: `section-${g.id}`, label: g.label }));
-    // Show each ungrouped series by name
+    // Then remaining ungrouped series (Parsha, Holidays, etc.) – except "other" already added
     ungrouped
+      .filter((s) => s.slug !== "other")
       .forEach((s) => items.push({ id: s.slug, label: s.name, href: `/shiurim/${s.slug}` }));
     return items;
   }, [groups, ungrouped]);
@@ -127,8 +134,8 @@ export default function HomeLanding({ ungrouped, groups, totalCount, allShiurim 
                     key={tab.id}
                     onClick={() => scrollToSection(tab.id)}
                     className={`whitespace-nowrap px-4 py-2 rounded-full text-sm font-medium transition-all ${activeSection === tab.id
-                        ? "bg-brown text-amber"
-                        : "text-brown/50 hover:text-brown hover:bg-brown/5"
+                      ? "bg-brown text-amber"
+                      : "text-brown/50 hover:text-brown hover:bg-brown/5"
                       }`}
                   >
                     {tab.label}

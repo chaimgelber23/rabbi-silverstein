@@ -24,15 +24,27 @@ export async function getSeriesShiurim(slug: string): Promise<Shiur[]> {
     });
   }
 
+  let matched: Shiur[];
   if (series.patterns.length > 0) {
     // Match by title patterns OR explicit categoryId assignment
-    return allShiurim.filter((shiur) =>
+    matched = allShiurim.filter((shiur) =>
       shiur.categoryId === slug || series.patterns.some((p) => p.test(shiur.title))
     );
   } else {
     // Custom series: match by categoryId (set to seriesSlug on upload)
-    return allShiurim.filter((shiur) => shiur.categoryId === slug);
+    matched = allShiurim.filter((shiur) => shiur.categoryId === slug);
   }
+
+  // For topic-type series (e.g. holidays, parsha), pre-compute each shiur's nav section
+  // so the client can filter accurately without relying on title substrings alone.
+  if (series.navType === "topic" && series.extractNav) {
+    return matched.map((shiur) => ({
+      ...shiur,
+      navSection: series.extractNav!(shiur).section,
+    }));
+  }
+
+  return matched;
 }
 
 export async function getLandingData(): Promise<{

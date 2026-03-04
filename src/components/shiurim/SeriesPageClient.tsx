@@ -36,8 +36,13 @@ export default function SeriesPageClient({ series, shiurim, navSections }: {
       if (series.slug === "other" && selectedSection === "Uncategorized") {
         filtered = filtered.filter((s) => s.isUncategorized);
       } else {
-        const lower = selectedSection.toLowerCase();
-        filtered = filtered.filter((s) => s.title.toLowerCase().includes(lower));
+        // Use pre-computed navSection if available (set server-side for holidays/parsha),
+        // which correctly handles manually uploaded shiurim whose title doesn't contain the Yom Tov name.
+        filtered = filtered.filter((s) =>
+          s.navSection
+            ? s.navSection === selectedSection
+            : s.title.toLowerCase().includes(selectedSection.toLowerCase())
+        );
       }
     }
     filtered.sort((a, b) => {
