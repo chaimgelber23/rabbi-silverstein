@@ -22,10 +22,10 @@ export default async function MyLearningPage() {
   const groups = data.groups.map((g) => ({ id: g.id, label: g.label }));
 
   const allShiurim = await fetchAllShiurim();
-  const shiurTitles = allShiurim.reduce((acc, s) => {
-    acc[s.id] = s.title;
-    return acc;
-  }, {} as Record<string, string>);
+  const shiurLookup: Record<string, { title: string; audioUrl: string }> = {};
+  for (const s of allShiurim) {
+    shiurLookup[s.id] = { title: s.title, audioUrl: s.audioUrl };
+  }
 
-  return <MyLearningClient allSeries={allSeries} groups={groups} shiurTitles={shiurTitles} />;
+  return <MyLearningClient allSeries={allSeries} groups={groups} shiurLookup={shiurLookup} />;
 }

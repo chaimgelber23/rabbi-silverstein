@@ -53,7 +53,8 @@ export function AudioPlayerProvider({ children }: { children: ReactNode }) {
       const shiur = currentShiurRef.current;
       if (shiur) {
         saveShiurProgress({
-          shiurId: shiur.id, seriesSlug: seriesSlugRef.current || undefined,
+          shiurId: shiur.id, title: shiur.title, audioUrl: shiur.audioUrl,
+          seriesSlug: seriesSlugRef.current || undefined,
           currentTime: audio.duration || 0, duration: audio.duration || 0,
           lastListened: new Date().toISOString(), completed: true,
         });
@@ -99,7 +100,8 @@ export function AudioPlayerProvider({ children }: { children: ReactNode }) {
         if (audio && playerState.currentShiur) {
           const completed = audio.duration - audio.currentTime < 30;
           saveShiurProgress({
-            shiurId: playerState.currentShiur.id, seriesSlug: seriesSlugRef.current || undefined,
+            shiurId: playerState.currentShiur.id, title: playerState.currentShiur.title, audioUrl: playerState.currentShiur.audioUrl,
+            seriesSlug: seriesSlugRef.current || undefined,
             currentTime: audio.currentTime, duration: audio.duration,
             lastListened: new Date().toISOString(), completed,
           });

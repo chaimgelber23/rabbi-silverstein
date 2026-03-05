@@ -4,6 +4,8 @@ import { db, auth } from "./firebase";
 
 export interface ShiurProgress {
   shiurId: string;
+  title?: string;
+  audioUrl?: string;
   seriesSlug?: string;
   currentTime: number;
   duration: number;
