@@ -124,7 +124,8 @@ export function AudioPlayerProvider({ children }: { children: ReactNode }) {
     } else {
       audio.src = shiur.audioUrl;
       const saved = !startFromBeginning ? getShiurProgress(shiur.id) : null;
-      const startTime = saved && !saved.completed ? saved.currentTime : 0;
+      const fullyDone = saved && saved.duration > 0 && (saved.duration - saved.currentTime < 3);
+      const startTime = saved && !fullyDone ? saved.currentTime : 0;
       audio.currentTime = startTime;
       audio.play();
       setPlayerState((prev) => ({ ...prev, currentShiur: shiur, isPlaying: true, currentTime: startTime }));
