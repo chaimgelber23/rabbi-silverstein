@@ -2,12 +2,12 @@
 
 import { createContext, useContext, useRef, useState, useCallback, useEffect, type ReactNode } from "react";
 import type { Shiur, PlayerState } from "@/lib/types";
-import { getShiurProgress, saveShiurProgress, saveSeriesProgress } from "@/lib/progress";
+import { getShiurProgress, saveShiurProgress, saveSeriesProgress, getNextShiur } from "@/lib/progress";
 import { track } from "@vercel/analytics";
 
 interface AudioPlayerContextType {
   playerState: PlayerState;
-  playShiur: (shiur: Shiur, startFromBeginning?: boolean, seriesSlug?: string, nextShiur?: Shiur | null) => void;
+  playShiur: (shiur: Shiur, startFromBeginning?: boolean, seriesSlug?: string, nextShiur?: Shiur | null, shiurimList?: Shiur[]) => void;
   togglePlayPause: () => void;
   seek: (time: number) => void;
   skipBack: () => void;
@@ -31,6 +31,7 @@ export function AudioPlayerProvider({ children }: { children: ReactNode }) {
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const nextShiurRef = useRef<Shiur | null>(null);
+  const shiurimListRef = useRef<Shiur[]>([]);
   const seriesSlugRef = useRef<string | null>(null);
   const currentShiurRef = useRef<Shiur | null>(null);
   const progressSaveIntervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -63,6 +64,13 @@ export function AudioPlayerProvider({ children }: { children: ReactNode }) {
       }
       if (nextShiurRef.current) {
         const next = nextShiurRef.current;
+        // Pre-compute the next-next shiur so auto-play can continue chaining
+        if (shiurimListRef.current.length > 0) {
+          nextShiurRef.current = getNextShiur(shiurimListRef.current, next.id);
+        } else {
+          nextShiurRef.current = null;
+        }
+        currentShiurRef.current = next;
         setTimeout(() => {
           if (audioRef.current) {
             audioRef.current.src = next.audioUrl;
@@ -114,11 +122,12 @@ export function AudioPlayerProvider({ children }: { children: ReactNode }) {
     return () => { if (progressSaveIntervalRef.current) clearInterval(progressSaveIntervalRef.current); };
   }, [playerState.isPlaying, playerState.currentShiur, playerState.duration]);
 
-  const playShiur = useCallback((shiur: Shiur, startFromBeginning = false, seriesSlug?: string, nextShiur?: Shiur | null) => {
+  const playShiur = useCallback((shiur: Shiur, startFromBeginning = false, seriesSlug?: string, nextShiur?: Shiur | null, shiurimList?: Shiur[]) => {
     const audio = audioRef.current;
     if (!audio) return;
     seriesSlugRef.current = seriesSlug || null;
     nextShiurRef.current = nextShiur || null;
+    if (shiurimList) shiurimListRef.current = shiurimList;
     if (playerState.currentShiur?.id === shiur.id) {
       if (audio.paused) audio.play(); else audio.pause();
     } else {

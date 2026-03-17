@@ -68,7 +68,7 @@ export default function SeriesPageClient({ series, shiurim, navSections }: {
               <button onClick={() => {
                 const s = recommendedShiur.shouldResume ? recommendedShiur.shiur : (recommendedShiur.shiur || recommendedShiur.lastListenedShiur);
                 if (!s) return;
-                playShiur(s, false, series.slug, getNextShiur(shiurim, s.id));
+                playShiur(s, false, series.slug, getNextShiur(shiurim, s.id), shiurim);
               }} className="px-5 py-2.5 rounded-xl text-sm font-semibold bg-amber text-white shadow-md hover:bg-amber-light transition-all flex items-center gap-2">
                 <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg>
                 {recommendedShiur.shouldResume ? "Resume" : "Continue"} in {series.name}
@@ -137,8 +137,8 @@ export default function SeriesPageClient({ series, shiurim, navSections }: {
             {visible.map((shiur) => (
               <motion.div key={shiur.id} variants={fadeUp}>
                 <ShiurCard shiur={shiur}
-                  onPlay={(s) => playShiur(s, false, series.slug, getNextShiur(filteredShiurim, s.id))}
-                  onPlayFromBeginning={(s) => playShiur(s, true, series.slug, getNextShiur(filteredShiurim, s.id))}
+                  onPlay={(s) => playShiur(s, false, series.slug, getNextShiur(filteredShiurim, s.id), filteredShiurim)}
+                  onPlayFromBeginning={(s) => playShiur(s, true, series.slug, getNextShiur(filteredShiurim, s.id), filteredShiurim)}
                   isCurrentlyPlaying={playerState.currentShiur?.id === shiur.id && playerState.isPlaying}
                   isCurrent={playerState.currentShiur?.id === shiur.id} />
               </motion.div>
