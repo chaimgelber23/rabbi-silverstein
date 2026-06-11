@@ -50,7 +50,7 @@ export default function SeriesPageClient({ series, shiurim, navSections }: {
       return sortOrder === "newest" ? diff : -diff;
     });
     return filtered;
-  }, [shiurim, selectedSection, sortOrder, series.navType]);
+  }, [shiurim, selectedSection, sortOrder, series.navType, series.slug]);
 
   const visible = filteredShiurim.slice(0, visibleCount);
   const hasMore = visibleCount < filteredShiurim.length;

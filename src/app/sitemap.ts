@@ -1,5 +1,7 @@
 import type { MetadataRoute } from "next";
-import { getAllSlugs, SERIES, SERIES_GROUPS } from "@/lib/seriesConfig";
+import {
+  getAllSlugs,
+} from "@/lib/seriesConfig";
 
 const SITE_URL = "https://rabbi-silverstein.vercel.app";
 

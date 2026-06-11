@@ -1,6 +1,10 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import {
+  useState,
+  useEffect,
+  useRef,
+} from "react";
 import { useAuth } from "@/components/AuthProvider";
 import { isAdmin } from "@/lib/admin";
 import { SERIES, SERIES_GROUPS } from "@/lib/seriesConfig";

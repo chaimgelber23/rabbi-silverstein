@@ -364,6 +364,8 @@ export default function MyLearningClient({
     setRecentShiurim(data.recentShiurim);
     setAllShiurItems(data.allShiurItems);
     setLoading(false);
+    // shiurLookup is a static server-passed lookup; effect re-runs only on dynamic inputs.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [allSeries, groups, user]);
 
   const handleStatClick = useCallback((tab: TabId) => {

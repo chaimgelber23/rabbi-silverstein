@@ -6,7 +6,7 @@ import AuthModal from "./AuthModal";
 
 export default function SignInBanner() {
   const { user } = useAuth();
-  const [dismissed, setDismissed] = useState(false);
+  const [dismissed, _setDismissed] = useState(false);
   const [showModal, setShowModal] = useState(false);
 
   if (user || dismissed) return null;

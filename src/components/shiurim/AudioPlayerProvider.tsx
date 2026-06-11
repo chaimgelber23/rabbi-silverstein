@@ -37,6 +37,7 @@ export function AudioPlayerProvider({ children }: { children: ReactNode }) {
   const progressSaveIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   // Keep ref in sync with state so event handlers always have latest value
+  // eslint-disable-next-line react-hooks/refs
   currentShiurRef.current = playerState.currentShiur;
 
   // Create audio element ONCE on mount — never recreate
@@ -97,7 +98,6 @@ export function AudioPlayerProvider({ children }: { children: ReactNode }) {
       audio.pause();
       audio.src = "";
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
