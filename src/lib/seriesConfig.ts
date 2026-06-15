@@ -347,3 +347,13 @@ export function matchTitleToSeries(title: string): SeriesDef | undefined {
   return undefined;
 }
 
+/**
+ * The single canonical series slug a shiur "lives" under — used to build its
+ * per-shiur URL (/shiurim/{slug}/{id}). Custom uploads carry their slug in
+ * categoryId; RSS shiurim ("general") fall back to the first matching pattern.
+ */
+export function canonicalSeriesSlug(shiur: { title: string; categoryId?: string }): string {
+  if (shiur.categoryId && shiur.categoryId !== "general") return shiur.categoryId;
+  return matchTitleToSeries(shiur.title)?.slug ?? "other";
+}
+

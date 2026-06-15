@@ -1,8 +1,10 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import Link from "next/link";
 import type { Shiur } from "@/lib/types";
 import { getProgressPercentage, isInProgress } from "@/lib/progress";
+import { canonicalSeriesSlug } from "@/lib/seriesConfig";
 
 function formatDate(isoDate: string): string {
   // timeZone:'UTC' pins the calendar date so the server (UTC) and the client
@@ -32,6 +34,7 @@ export default function ShiurCard({
   const [progressPercent, setProgressPercent] = useState(0);
   const [inProg, setInProg] = useState(false);
   const [downloading, setDownloading] = useState(false);
+  const detailHref = `/shiurim/${canonicalSeriesSlug(shiur)}/${encodeURIComponent(shiur.id)}`;
 
   useEffect(() => {
     setProgressPercent(getProgressPercentage(shiur.id));
@@ -103,11 +106,13 @@ export default function ShiurCard({
 
         {/* ── Title + meta + progress ── */}
         <div className="flex-1 min-w-0">
-          <h3 className={`font-bold text-sm leading-snug line-clamp-2 mb-0.5 transition-colors ${
-            isCurrent ? "text-amber-text" : "text-brown"
-          }`}>
-            {shiur.title}
-          </h3>
+          <Link href={detailHref} className="block">
+            <h3 className={`font-bold text-sm leading-snug line-clamp-2 mb-0.5 transition-colors hover:text-amber-text ${
+              isCurrent ? "text-amber-text" : "text-brown"
+            }`}>
+              {shiur.title}
+            </h3>
+          </Link>
           <div className="flex items-center gap-1.5 text-brown/70 text-xs flex-wrap">
             <span>{formatDate(shiur.pubDate)}</span>
             <span>·</span>

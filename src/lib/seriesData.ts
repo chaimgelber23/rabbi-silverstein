@@ -3,6 +3,11 @@ import { getAllSeriesWithCustom, getAllGroupsWithCustom } from "./seriesConfigSe
 import { YOM_TOV_ORDER } from "./seriesConfig";
 import type { Shiur, SeriesStats } from "./types";
 
+export async function getShiurById(id: string): Promise<Shiur | null> {
+  const all = await fetchAllShiurim();
+  return all.find((s) => s.id === id) ?? null;
+}
+
 export async function getSeriesShiurim(slug: string): Promise<Shiur[]> {
   const allSeries = await getAllSeriesWithCustom();
   const series = allSeries.find((s) => s.slug === slug);
