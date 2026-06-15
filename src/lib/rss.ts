@@ -132,9 +132,17 @@ async function fetchAndParseRss(): Promise<Shiur[]> {
     }
   }
 
-  return Array.from(byTitle.values()).sort(
+  const merged = Array.from(byTitle.values()).sort(
     (a, b) => new Date(b.pubDate).getTime() - new Date(a.pubDate).getTime()
   );
+
+  // If every feed failed or returned nothing, throw so unstable_cache keeps serving
+  // the last good value instead of caching an empty array (which would blank the site).
+  if (merged.length === 0) {
+    throw new Error("All RSS feeds returned no items — preserving last cached value.");
+  }
+
+  return merged;
 }
 
 export const fetchFromRss = unstable_cache(fetchAndParseRss, ["rss-shiurim-v2"], {

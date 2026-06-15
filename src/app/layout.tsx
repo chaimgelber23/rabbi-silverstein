@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter, Playfair_Display, Frank_Ruhl_Libre } from "next/font/google";
 import "./globals.css";
 import { Analytics } from "@vercel/analytics/react";
+import { MotionConfig } from "framer-motion";
 import AuthProvider from "@/components/AuthProvider";
 import { AudioPlayerProvider } from "@/components/shiurim/AudioPlayerProvider";
 import AudioPlayerBar from "@/components/shiurim/AudioPlayerBar";
@@ -66,7 +67,7 @@ export const metadata: Metadata = {
     description: siteDescription,
   },
   twitter: {
-    card: "summary",
+    card: "summary_large_image",
     title: siteName,
     description: siteDescription,
   },
@@ -108,15 +109,17 @@ export default function RootLayout({
         />
       </head>
       <body className={`${inter.variable} ${playfair.variable} ${frankRuhl.variable} antialiased`}>
-        <AuthProvider>
-          <AudioPlayerProvider>
-            <Navbar />
-            {children}
-            <Footer />
-            <AudioPlayerBar />
-          </AudioPlayerProvider>
-          <Analytics />
-        </AuthProvider>
+        <MotionConfig reducedMotion="user">
+          <AuthProvider>
+            <AudioPlayerProvider>
+              <Navbar />
+              {children}
+              <Footer />
+              <AudioPlayerBar />
+            </AudioPlayerProvider>
+            <Analytics />
+          </AuthProvider>
+        </MotionConfig>
       </body>
     </html>
   );

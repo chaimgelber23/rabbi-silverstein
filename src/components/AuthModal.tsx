@@ -1,12 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useAuth } from "./AuthProvider";
 
 interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
+
+const HEADING_ID = "auth-modal-title";
 
 export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
   const { signIn, signUp, resetPassword } = useAuth();
@@ -16,6 +18,56 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [resetSent, setResetSent] = useState(false);
+  const panelRef = useRef<HTMLDivElement>(null);
+
+  const handleClose = useCallback(() => {
+    setEmail("");
+    setPassword("");
+    setError("");
+    setMode("signin");
+    onClose();
+  }, [onClose]);
+
+  // Dialog behavior: focus the first field on open, trap Tab inside the panel,
+  // close on Escape, and restore focus to the trigger on close.
+  useEffect(() => {
+    if (!isOpen) return;
+    const prevFocus = document.activeElement as HTMLElement | null;
+    const getFocusable = () =>
+      panelRef.current
+        ? Array.from(
+            panelRef.current.querySelectorAll<HTMLElement>(
+              'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+            )
+          ).filter((el) => !el.hasAttribute("disabled"))
+        : [];
+    getFocusable()[0]?.focus();
+
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        handleClose();
+        return;
+      }
+      if (e.key === "Tab") {
+        const f = getFocusable();
+        if (f.length === 0) return;
+        const first = f[0];
+        const last = f[f.length - 1];
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
+      }
+    };
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("keydown", onKeyDown);
+      prevFocus?.focus?.();
+    };
+  }, [isOpen, handleClose]);
 
   if (!isOpen) return null;
 
@@ -27,7 +79,11 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
       if (mode === "reset") {
         await resetPassword(email);
         setResetSent(true);
-        setTimeout(() => { setMode("signin"); setResetSent(false); onClose(); }, 3000);
+        setTimeout(() => {
+          setMode("signin");
+          setResetSent(false);
+          onClose();
+        }, 3000);
       } else if (mode === "signup") {
         await signUp(email, password);
         onClose();
@@ -49,21 +105,24 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
     }
   };
 
-  const handleClose = () => {
-    setEmail(""); setPassword(""); setError(""); setMode("signin"); onClose();
-  };
-
   return (
     <div className="fixed inset-0 bg-black/70 backdrop-blur-md z-[9999] flex items-center justify-center p-4" onClick={handleClose}>
-      <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 relative animate-in" onClick={(e) => e.stopPropagation()}>
+      <div
+        ref={panelRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={HEADING_ID}
+        className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 relative animate-in"
+        onClick={(e) => e.stopPropagation()}
+      >
         <button onClick={handleClose} className="absolute top-4 right-4 text-brown/40 hover:text-brown transition-colors" aria-label="Close">
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg aria-hidden="true" className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>
 
         <div className="mb-6">
-          <h2 className="serif-heading text-brown text-2xl font-bold mb-2">
+          <h2 id={HEADING_ID} className="serif-heading text-brown text-2xl font-bold mb-2">
             {mode === "reset" ? "Reset Password" : mode === "signup" ? "Create Account" : "Sign In"}
           </h2>
           <p className="text-brown/60 text-sm">
@@ -96,7 +155,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
             </div>
           )}
           <button type="submit" disabled={loading}
-            className="w-full bg-amber text-white font-bold py-3 rounded-lg hover:bg-amber-light transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+            className="w-full bg-amber text-brown font-bold py-3 rounded-lg hover:bg-amber-light transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
             {loading ? "Please wait..." : mode === "reset" ? "Send Reset Link" : mode === "signup" ? "Create Account" : "Sign In"}
           </button>
         </form>
@@ -104,21 +163,21 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
         <div className="mt-6 text-center text-sm">
           {mode === "signin" && (
             <>
-              <button onClick={() => setMode("reset")} className="text-amber hover:text-amber-light font-semibold">Forgot password?</button>
+              <button onClick={() => setMode("reset")} className="text-amber-text hover:text-brown font-semibold">Forgot password?</button>
               <div className="mt-3 text-brown/60">
                 Don&apos;t have an account?{" "}
-                <button onClick={() => setMode("signup")} className="text-amber hover:text-amber-light font-semibold">Sign up</button>
+                <button onClick={() => setMode("signup")} className="text-amber-text hover:text-brown font-semibold">Sign up</button>
               </div>
             </>
           )}
           {mode === "signup" && (
             <div className="text-brown/60">
               Already have an account?{" "}
-              <button onClick={() => setMode("signin")} className="text-amber hover:text-amber-light font-semibold">Sign in</button>
+              <button onClick={() => setMode("signin")} className="text-amber-text hover:text-brown font-semibold">Sign in</button>
             </div>
           )}
           {mode === "reset" && (
-            <button onClick={() => setMode("signin")} className="text-amber hover:text-amber-light font-semibold">Back to sign in</button>
+            <button onClick={() => setMode("signin")} className="text-amber-text hover:text-brown font-semibold">Back to sign in</button>
           )}
         </div>
       </div>
