@@ -14,7 +14,7 @@ export default function Navbar() {
   return (
     <>
       <nav className="bg-brown text-white sticky top-0 z-50 shadow-lg">
-        <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+        <div className="w-full px-5 sm:px-8 py-4 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-3 group">
             <div className="w-10 h-10 bg-amber/20 rounded-full flex items-center justify-center">
               <svg className="w-5 h-5 text-amber" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -70,7 +70,7 @@ export default function Navbar() {
         </div>
 
         {mobileOpen && (
-          <div className="md:hidden border-t border-white/10 px-6 py-4 space-y-3">
+          <div className="md:hidden border-t border-white/10 px-5 sm:px-8 py-4 space-y-3">
             <Link href="/" onClick={() => setMobileOpen(false)} className="block text-white/80 hover:text-amber transition-colors font-medium">
               Shiurim
             </Link>

@@ -19,7 +19,7 @@ export default function SeriesCard({ series }: { series: SeriesStats }) {
           </div>
           <p className="text-brown/50 text-sm mt-1 line-clamp-2 flex-1">{series.description}</p>
           <div className="flex items-center justify-between mt-4 pt-3 border-t border-amber/10">
-            <span className="text-amber font-semibold text-sm">
+            <span className="text-amber-text font-semibold text-sm">
               {series.episodeCount} shiur{series.episodeCount !== 1 ? "im" : ""}
             </span>
             <span className="text-brown/50 text-xs font-medium flex items-center gap-1 group-hover:text-amber transition-colors">

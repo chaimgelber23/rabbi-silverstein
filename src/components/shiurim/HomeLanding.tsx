@@ -30,7 +30,9 @@ export default function HomeLanding({ ungrouped, groups, totalCount, allShiurim 
   const searchResults = useMemo(() => {
     if (!searchQuery.trim()) return null;
     const q = searchQuery.toLowerCase();
-    return allShiurim.filter((s) => s.title.toLowerCase().includes(q));
+    return allShiurim.filter(
+      (s) => s.title.toLowerCase().includes(q) || (s.description || "").toLowerCase().includes(q)
+    );
   }, [searchQuery, allShiurim]);
 
   const isSearching = searchQuery.trim().length > 0;
@@ -185,7 +187,7 @@ export default function HomeLanding({ ungrouped, groups, totalCount, allShiurim 
                         <p className="text-brown/50 text-sm">{group.description}</p>
                       </div>
                     </div>
-                    <Link href={`/shiurim/${group.id}`} className="text-amber font-semibold text-sm hover:text-amber-light transition-colors flex items-center gap-1 shrink-0">
+                    <Link href={`/shiurim/${group.id}`} className="text-amber-text font-semibold text-sm hover:text-brown transition-colors flex items-center gap-1 shrink-0">
                       View All
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
                     </Link>
@@ -216,7 +218,7 @@ export default function HomeLanding({ ungrouped, groups, totalCount, allShiurim 
                         <p className="text-brown/50 text-sm mt-1">{s.description}</p>
                       </div>
                     </div>
-                    <Link href={`/shiurim/${s.slug}`} className="text-amber font-semibold text-sm hover:text-amber-light transition-colors flex items-center gap-1 shrink-0 px-2">
+                    <Link href={`/shiurim/${s.slug}`} className="text-amber-text font-semibold text-sm hover:text-brown transition-colors flex items-center gap-1 shrink-0 px-2">
                       View All
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
                     </Link>

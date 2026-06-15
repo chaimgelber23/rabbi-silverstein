@@ -5,6 +5,7 @@
   --color-brown-light: #3A2820;
   --color-amber: #C4A265;
   --color-amber-light: #D4B87A;
+  --color-amber-text: #8A6A2E;
   --color-sienna: #7A5440;
   --color-cream: #FFF8F0;
   --color-tan: #F5EDE3;
@@ -16,6 +17,7 @@
   --color-brown-light: var(--color-brown-light);
   --color-amber: var(--color-amber);
   --color-amber-light: var(--color-amber-light);
+  --color-amber-text: var(--color-amber-text);
   --color-sienna: var(--color-sienna);
   --color-cream: var(--color-cream);
   --color-tan: var(--color-tan);

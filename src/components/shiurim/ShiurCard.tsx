@@ -5,7 +5,9 @@ import type { Shiur } from "@/lib/types";
 import { getProgressPercentage, isInProgress } from "@/lib/progress";
 
 function formatDate(isoDate: string): string {
-  return new Date(isoDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+  // timeZone:'UTC' pins the calendar date so the server (UTC) and the client
+  // (visitor's local TZ) always render the same string — prevents React #418.
+  return new Date(isoDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" });
 }
 
 function formatDuration(duration: string): string {
@@ -102,11 +104,11 @@ export default function ShiurCard({
         {/* ── Title + meta + progress ── */}
         <div className="flex-1 min-w-0">
           <h3 className={`font-bold text-sm leading-snug line-clamp-2 mb-0.5 transition-colors ${
-            isCurrent ? "text-amber" : "text-brown"
+            isCurrent ? "text-amber-text" : "text-brown"
           }`}>
             {shiur.title}
           </h3>
-          <div className="flex items-center gap-1.5 text-brown/40 text-xs flex-wrap">
+          <div className="flex items-center gap-1.5 text-brown/70 text-xs flex-wrap">
             <span>{formatDate(shiur.pubDate)}</span>
             <span>·</span>
             <span>{formatDuration(shiur.duration)}</span>
@@ -140,6 +142,7 @@ export default function ShiurCard({
             <button
               onClick={() => onPlayFromBeginning(shiur)}
               title="Start over"
+              aria-label="Start over from the beginning"
               className="w-8 h-8 rounded-full flex items-center justify-center text-brown/25
                          hover:text-amber hover:bg-amber/8 transition-all duration-150"
             >
@@ -153,6 +156,7 @@ export default function ShiurCard({
             onClick={handleDownload}
             disabled={downloading}
             title="Download"
+            aria-label="Download shiur"
             className="w-8 h-8 rounded-full flex items-center justify-center text-brown/25
                        hover:text-amber hover:bg-amber/8 transition-all duration-150 disabled:opacity-40"
           >

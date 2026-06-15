@@ -221,7 +221,21 @@ export const SERIES: SeriesDef[] = [
   },
 
   // ========== BITACHON (sub-series) ==========
-  // Pesukai Bitachon MUST come before general Bitachon pattern
+  // Order matters for matchTitleToSeries (first match wins): the specific
+  // patterns ("Bitachon Shiur N" chabura, Pesukai) come before Weekly Bitachon,
+  // and Weekly Bitachon's pattern explicitly excludes "Bitachon Shiur" so the
+  // longer chabura episodes don't appear in both series.
+  {
+    slug: "bitachon-chabura",
+    name: "Bitachon Chabura",
+    description:
+      "Rabbi Silverstein's weekly Bitachon chabura — a deeper, shiur-by-shiur journey through trust in Hashem.",
+    patterns: [/^Bitachon\s+Shiur/i],
+    group: "bitachon",
+    navType: "sequential",
+    sortDefault: "oldest",
+    displayOrder: 1,
+  },
   {
     slug: "pesukai-bitachon",
     name: "Pesukai Bitachon",
@@ -231,18 +245,18 @@ export const SERIES: SeriesDef[] = [
     group: "bitachon",
     navType: "sequential",
     sortDefault: "oldest",
-    displayOrder: 2,
+    displayOrder: 3,
   },
   {
     slug: "bitachon-shiurim",
     name: "Weekly Bitachon",
     description:
-      "7-minute chizuk on Bitachon — strengthening trust in Hashem drawn from the Parsha and Moadim.",
-    patterns: [/^Bitachon\b/i, /^7\s*min.*chizuk/i],
+      "Short chizuk on Bitachon — strengthening trust in Hashem drawn from the Parsha and Moadim.",
+    patterns: [/^Bitachon\b(?!\s+Shiur)/i, /^7\s*min.*chizuk/i],
     group: "bitachon",
     navType: "sequential",
     sortDefault: "newest",
-    displayOrder: 1,
+    displayOrder: 2,
   },
 
   // ========== STANDALONE SERIES (no group) ==========

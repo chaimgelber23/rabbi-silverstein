@@ -107,7 +107,7 @@ export default function AudioPlayer({
           {/* Title row */}
           <div className="flex items-center justify-between mb-2">
             <p className="text-white text-sm font-semibold truncate flex-1 min-w-0 mr-3">{shiur.title}</p>
-            <button onClick={onClose} className="shrink-0 text-white/40 hover:text-white/70 transition-colors">
+            <button onClick={onClose} aria-label="Close player" className="shrink-0 text-white/70 hover:text-white transition-colors">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
@@ -124,11 +124,27 @@ export default function AudioPlayer({
               onTouchStart={handleTouchStart}
               onTouchMove={handleTouchMove}
               onTouchEnd={handleTouchEnd}
+              onKeyDown={(e) => {
+                if (!(duration > 0)) return;
+                let next = currentTime;
+                if (e.key === "ArrowRight") next = Math.min(duration, currentTime + 5);
+                else if (e.key === "ArrowLeft") next = Math.max(0, currentTime - 5);
+                else if (e.key === "ArrowUp") next = Math.min(duration, currentTime + 10);
+                else if (e.key === "ArrowDown") next = Math.max(0, currentTime - 10);
+                else if (e.key === "Home") next = 0;
+                else if (e.key === "End") next = duration;
+                else if (e.key === "PageUp") next = Math.min(duration, currentTime + 30);
+                else if (e.key === "PageDown") next = Math.max(0, currentTime - 30);
+                else return;
+                e.preventDefault();
+                onSeek(next);
+              }}
               role="slider"
               aria-label="Seek"
               aria-valuemin={0}
-              aria-valuemax={duration}
+              aria-valuemax={duration || 0}
               aria-valuenow={displayTime}
+              aria-valuetext={formatTime(displayTime)}
               tabIndex={0}
             >
               <div className="absolute inset-x-0 h-1.5 bg-white/15 rounded-full" />
@@ -150,14 +166,14 @@ export default function AudioPlayer({
 
           {/* Controls row */}
           <div className="flex items-center justify-center gap-5">
-            <button onClick={onSkipBack} className="shrink-0 w-10 h-10 flex items-center justify-center text-white/60 hover:text-white transition-colors rounded-full hover:bg-white/10" title="Back 10s">
+            <button onClick={onSkipBack} aria-label="Back 10 seconds" className="shrink-0 w-10 h-10 flex items-center justify-center text-white/60 hover:text-white transition-colors rounded-full hover:bg-white/10" title="Back 10s">
               <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none">
                 <path d="M12.5 8V4L6 9l6.5 5v-4c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H5c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z" fill="currentColor" transform="scale(-1,1) translate(-24,0)" />
                 <text x="12" y="15.5" textAnchor="middle" fill="currentColor" fontSize="7" fontWeight="700" fontFamily="system-ui, sans-serif">10</text>
               </svg>
             </button>
 
-            <button onClick={onTogglePlay} className="shrink-0 w-14 h-14 bg-amber hover:bg-amber/90 rounded-full flex items-center justify-center text-brown transition-all shadow-lg shadow-amber/25 hover:shadow-amber/40 hover:scale-105 active:scale-95">
+            <button onClick={onTogglePlay} aria-label={isPlaying ? "Pause" : "Play"} className="shrink-0 w-14 h-14 bg-amber hover:bg-amber/90 rounded-full flex items-center justify-center text-brown transition-all shadow-lg shadow-amber/25 hover:shadow-amber/40 hover:scale-105 active:scale-95">
               {isPlaying ? (
                 <svg className="w-7 h-7" fill="currentColor" viewBox="0 0 24 24"><rect x="6" y="4" width="4" height="16" rx="1" /><rect x="14" y="4" width="4" height="16" rx="1" /></svg>
               ) : (
@@ -165,7 +181,7 @@ export default function AudioPlayer({
               )}
             </button>
 
-            <button onClick={onSkipForward} className="shrink-0 w-10 h-10 flex items-center justify-center text-white/60 hover:text-white transition-colors rounded-full hover:bg-white/10" title="Forward 10s">
+            <button onClick={onSkipForward} aria-label="Forward 10 seconds" className="shrink-0 w-10 h-10 flex items-center justify-center text-white/60 hover:text-white transition-colors rounded-full hover:bg-white/10" title="Forward 10s">
               <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none">
                 <path d="M12.5 8V4L6 9l6.5 5v-4c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H5c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z" fill="currentColor" />
                 <text x="12" y="15.5" textAnchor="middle" fill="currentColor" fontSize="7" fontWeight="700" fontFamily="system-ui, sans-serif">10</text>

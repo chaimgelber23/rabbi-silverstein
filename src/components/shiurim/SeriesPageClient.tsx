@@ -148,7 +148,7 @@ export default function SeriesPageClient({ series, shiurim, navSections }: {
           {filteredShiurim.length === 0 && (
             <div className="text-center py-16 text-brown/40">
               <p className="text-lg">No shiurim found for this selection.</p>
-              <button onClick={() => handleSectionChange(null)} className="mt-4 text-amber font-semibold hover:text-amber-light transition-colors">View all shiurim</button>
+              <button onClick={() => handleSectionChange(null)} className="mt-4 text-amber-text font-semibold hover:text-brown transition-colors">View all shiurim</button>
             </div>
           )}
 
