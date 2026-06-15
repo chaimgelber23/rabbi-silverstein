@@ -1,16 +1,7 @@
-import Image from "next/image";
-
 export default function Footer() {
   return (
     <footer className="bg-brown text-white/60 py-12 px-6">
       <div className="max-w-6xl mx-auto text-center">
-        <Image
-          src="/rabbi-silverstein.jpg"
-          alt="Rabbi Odom Silverstein"
-          width={88}
-          height={88}
-          className="rounded-2xl mx-auto mb-4 ring-1 ring-amber/30 shadow-lg shadow-black/30 object-cover"
-        />
         <p className="serif-heading text-amber text-xl font-bold mb-2">Rabbi Odom Silverstein</p>
         <p className="text-sm mb-6">
           5 Minute Nefesh HaChaim &bull; 5 Minute Tanya &bull; Bitachon &bull; Parsha
