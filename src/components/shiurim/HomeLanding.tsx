@@ -9,6 +9,7 @@ import { getNextShiur } from "@/lib/progress";
 import SearchBar from "./SearchBar";
 import SeriesCard from "./SeriesCard";
 import ShiurCard from "./ShiurCard";
+import DailyShiurCard from "./DailyShiurCard";
 import SignInBanner from "../SignInBanner";
 
 const fadeUp = { hidden: { opacity: 0, y: 30 }, visible: { opacity: 1, y: 0, transition: { duration: 0.6 } } };
@@ -113,6 +114,8 @@ export default function HomeLanding({ ungrouped, groups, totalCount, allShiurim 
           </motion.p>
         </motion.div>
       </section>
+
+      <DailyShiurCard allShiurim={allShiurim} />
 
       <SignInBanner />
 
