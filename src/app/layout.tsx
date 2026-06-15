@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, Playfair_Display, Frank_Ruhl_Libre } from "next/font/google";
 import "./globals.css";
-import { Analytics } from "@vercel/analytics/react";
+import { Analytics } from "@vercel/analytics/next";
 import { MotionConfig } from "framer-motion";
 import AuthProvider from "@/components/AuthProvider";
 import { AudioPlayerProvider } from "@/components/shiurim/AudioPlayerProvider";
