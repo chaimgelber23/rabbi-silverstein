@@ -3,7 +3,9 @@ service firebase.storage {
   match /b/{bucket}/o {
     match /shiurim/{allPaths=**} {
       allow read: if true;
-      allow write: if request.auth != null;
+      // Admin-only write (was: any signed-in user could upload/delete audio).
+      allow write: if request.auth != null
+        && request.auth.token.email in ['chaimgelber23@gmail.com', 'odsilverstein@gmail.com'];
     }
   }
 }

@@ -1,23 +1,29 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // User progress (existing)
+    // Admin = the accounts the app already treats as admin (NEXT_PUBLIC_ADMIN_EMAILS).
+    function isAdmin() {
+      return request.auth != null
+        && request.auth.token.email in ['chaimgelber23@gmail.com', 'odsilverstein@gmail.com'];
+    }
+
+    // User progress — each signed-in user owns only their own subtree.
     match /users/{userId}/{document=**} {
       allow read, write: if request.auth != null && request.auth.uid == userId;
     }
 
-    // Custom series, groups, shiurim — public read, auth write
+    // Catalog content — public read, ADMIN-ONLY write (was: any signed-in user).
     match /customSeries/{doc} {
       allow read: if true;
-      allow write: if request.auth != null;
+      allow write: if isAdmin();
     }
     match /customGroups/{doc} {
       allow read: if true;
-      allow write: if request.auth != null;
+      allow write: if isAdmin();
     }
     match /customShiurim/{doc} {
       allow read: if true;
-      allow write: if request.auth != null;
+      allow write: if isAdmin();
     }
   }
 }
