@@ -25,5 +25,10 @@ service cloud.firestore {
       allow read: if true;
       allow write: if isAdmin();
     }
+    // Admin-authored per-shiur written summaries / takeaways.
+    match /shiurMeta/{doc} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
   }
 }

@@ -125,6 +125,12 @@ export default function ShiurCard({
             )}
           </div>
 
+          {(shiur.summary || shiur.description) && (
+            <p className="text-brown/55 text-xs leading-snug line-clamp-2 mt-1.5">
+              {shiur.summary || shiur.description}
+            </p>
+          )}
+
           {/* Thin progress bar */}
           {progressPercent > 0 && progressPercent < 100 && (
             <div className="mt-2 h-1 bg-brown/8 rounded-full overflow-hidden">

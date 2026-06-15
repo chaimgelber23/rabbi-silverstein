@@ -32,7 +32,10 @@ export default function HomeLanding({ ungrouped, groups, totalCount, allShiurim 
     if (!searchQuery.trim()) return null;
     const q = searchQuery.toLowerCase();
     return allShiurim.filter(
-      (s) => s.title.toLowerCase().includes(q) || (s.description || "").toLowerCase().includes(q)
+      (s) =>
+        s.title.toLowerCase().includes(q) ||
+        (s.summary || "").toLowerCase().includes(q) ||
+        (s.description || "").toLowerCase().includes(q)
     );
   }, [searchQuery, allShiurim]);
 

@@ -171,6 +171,31 @@ export async function deleteCustomShiur(
   }
 }
 
+// ========== Shiur summaries (written learning layer) ==========
+
+export async function getShiurMetaClient(): Promise<Record<string, { summary?: string; takeaway?: string }>> {
+  if (!db) return {};
+  const snapshot = await getDocs(collection(db, "shiurMeta"));
+  const map: Record<string, { summary?: string; takeaway?: string }> = {};
+  snapshot.docs.forEach((d) => {
+    const data = d.data();
+    map[d.id] = { summary: data.summary || "", takeaway: data.takeaway || "" };
+  });
+  return map;
+}
+
+export async function saveShiurMeta(
+  shiurId: string,
+  meta: { summary: string; takeaway: string }
+): Promise<void> {
+  if (!db) throw new Error("Firestore not initialized");
+  await setDoc(
+    doc(db, "shiurMeta", shiurId),
+    { summary: meta.summary, takeaway: meta.takeaway, updatedAt: serverTimestamp() },
+    { merge: true }
+  );
+}
+
 // ========== Revalidation ==========
 
 export async function triggerRevalidation(path?: string): Promise<void> {

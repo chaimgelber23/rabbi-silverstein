@@ -12,6 +12,8 @@ export interface Shiur {
   subLevel2?: string;
   isUncategorized?: boolean;
   navSection?: string;
+  summary?: string;
+  takeaway?: string;
 }
 
 export interface PlayerState {

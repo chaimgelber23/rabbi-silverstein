@@ -64,6 +64,31 @@ async function fetchCustomShiurimUncached(): Promise<Shiur[]> {
   }
 }
 
+export interface ShiurMeta {
+  summary?: string;
+  takeaway?: string;
+}
+
+async function fetchShiurMetaUncached(): Promise<Record<string, ShiurMeta>> {
+  try {
+    const { adminDb } = await import("./firebase-admin");
+    const snapshot = await adminDb.collection("shiurMeta").get();
+    const map: Record<string, ShiurMeta> = {};
+    snapshot.docs.forEach((doc) => {
+      const d = doc.data();
+      map[doc.id] = { summary: d.summary || "", takeaway: d.takeaway || "" };
+    });
+    return map;
+  } catch (err) {
+    console.error("Failed to fetch shiur meta:", err);
+    return {};
+  }
+}
+
+export const fetchShiurMeta = unstable_cache(fetchShiurMetaUncached, ["shiur-meta"], {
+  revalidate: 300,
+});
+
 export const fetchCustomSeries = unstable_cache(
   fetchCustomSeriesUncached,
   ["custom-series"],

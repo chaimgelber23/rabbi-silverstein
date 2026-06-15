@@ -82,7 +82,8 @@ export default async function ShiurPage({
   const prev = idx > 0 ? ordered[idx - 1] : null;
   const next = idx >= 0 && idx < ordered.length - 1 ? ordered[idx + 1] : null;
 
-  const description = shiur.description?.trim();
+  const summary = shiur.summary?.trim() || shiur.description?.trim();
+  const takeaway = shiur.takeaway?.trim();
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -90,7 +91,7 @@ export default async function ShiurPage({
     name: shiur.title,
     datePublished: shiur.pubDate,
     timeRequired: `PT${Math.max(1, Math.round(shiur.durationSeconds / 60))}M`,
-    description: description || `${shiur.title} by Rabbi Odom Silverstein.`,
+    description: summary || `${shiur.title} by Rabbi Odom Silverstein.`,
     url: `${SITE_URL}/shiurim/${slug}/${encodeURIComponent(shiur.id)}`,
     associatedMedia: { "@type": "AudioObject", contentUrl: shiur.audioUrl },
     ...(seriesName ? { partOfSeries: { "@type": "PodcastSeries", name: seriesName } } : {}),
@@ -121,10 +122,17 @@ export default async function ShiurPage({
         <div className="max-w-3xl mx-auto">
           <ShiurActions shiur={shiur} seriesSlug={slug} seriesShiurim={ordered} />
 
-          {description ? (
+          {summary ? (
             <div className="mt-8 bg-white border border-amber/15 rounded-xl p-6">
               <h2 className="serif-heading text-brown text-xl font-bold mb-3">About this shiur</h2>
-              <p className="text-brown/80 leading-relaxed whitespace-pre-line">{description}</p>
+              <p className="text-brown/80 leading-relaxed whitespace-pre-line">{summary}</p>
+            </div>
+          ) : null}
+
+          {takeaway ? (
+            <div className="mt-4 bg-amber/5 border border-amber/20 rounded-xl p-5">
+              <h3 className="text-amber-text font-bold text-xs uppercase tracking-wider mb-2">Key takeaway</h3>
+              <p className="text-brown/80 leading-relaxed whitespace-pre-line">{takeaway}</p>
             </div>
           ) : null}
 

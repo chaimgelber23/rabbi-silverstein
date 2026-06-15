@@ -1,5 +1,5 @@
 import { fetchFromRss } from "./rss";
-import { fetchCustomShiurim } from "./customData";
+import { fetchCustomShiurim, fetchShiurMeta } from "./customData";
 import type { Shiur } from "./types";
 
 function normalizeTitle(title: string): string {
@@ -7,9 +7,10 @@ function normalizeTitle(title: string): string {
 }
 
 export async function fetchAllShiurim(): Promise<Shiur[]> {
-  const [rssShiurim, customShiurim] = await Promise.all([
+  const [rssShiurim, customShiurim, meta] = await Promise.all([
     fetchFromRss(),
     fetchCustomShiurim(),
+    fetchShiurMeta(),
   ]);
 
   const byKey = new Map<string, Shiur>();
@@ -25,7 +26,15 @@ export async function fetchAllShiurim(): Promise<Shiur[]> {
     byKey.set(`custom:${shiur.id}`, shiur);
   }
 
-  const merged = Array.from(byKey.values());
+  // Overlay admin-authored summaries/takeaways (keyed by shiur id).
+  const merged = Array.from(byKey.values()).map((s) => {
+    const m = meta[s.id];
+    if (m && (m.summary || m.takeaway)) {
+      return { ...s, summary: m.summary || undefined, takeaway: m.takeaway || undefined };
+    }
+    return s;
+  });
+
   merged.sort(
     (a, b) => new Date(b.pubDate).getTime() - new Date(a.pubDate).getTime()
   );
