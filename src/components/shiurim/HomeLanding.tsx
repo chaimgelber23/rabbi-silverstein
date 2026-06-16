@@ -50,6 +50,22 @@ export default function HomeLanding({ ungrouped, groups, totalCount, allShiurim 
 
   const isSearching = searchQuery.trim().length > 0;
 
+  // Per-sefer "start from the beginning" entry points — one per group (Tanya,
+  // Nefesh HaChaim, Bitachon) plus each standalone series (Parsha, Yamim Tovim),
+  // built from live data so anything he posts shows up automatically. The
+  // catch-all "All Shiurim" (slug "other") is not a sefer to start, so skip it.
+  const startEntries = useMemo(() => {
+    const groupEntries = groups.map((g) => ({
+      slug: g.id,
+      name: g.label,
+      count: g.series.reduce((n, s) => n + s.episodeCount, 0),
+    }));
+    const standalone = ungrouped
+      .filter((s) => s.slug !== "other")
+      .map((s) => ({ slug: s.slug, name: s.name, count: s.episodeCount }));
+    return [...groupEntries, ...standalone];
+  }, [groups, ungrouped]);
+
   // Build tab items: All Shiurim first, then group scroll-targets, then remaining ungrouped series
   const tabs = useMemo(() => {
     const items: { id: string; label: string; href?: string }[] = [];
@@ -128,6 +144,33 @@ export default function HomeLanding({ ungrouped, groups, totalCount, allShiurim 
       </section>
 
       <DailyShiurCard allShiurim={allShiurim} />
+
+      {startEntries.length > 0 && (
+        <section className="px-6 pt-7 bg-cream">
+          <div className="max-w-5xl mx-auto">
+            <h2 className="text-amber-text text-xs font-bold uppercase tracking-wider mb-3">
+              Start a sefer from the beginning
+            </h2>
+            <div className="flex flex-wrap gap-3">
+              {startEntries.map((e) => (
+                <Link
+                  key={e.slug}
+                  href={`/shiurim/${e.slug}`}
+                  className="group inline-flex items-center gap-2.5 bg-white border border-amber/25 rounded-full pl-2.5 pr-4 py-2 shadow-sm hover:border-amber/50 hover:shadow-md transition-all"
+                >
+                  <span className="w-7 h-7 rounded-full bg-amber/15 flex items-center justify-center shrink-0 group-hover:bg-amber/25 transition-colors">
+                    <svg className="w-3.5 h-3.5 text-amber-text translate-x-px" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="M8 5v14l11-7z" />
+                    </svg>
+                  </span>
+                  <span className="text-brown font-semibold text-sm">Start {e.name}</span>
+                  <span className="text-brown/40 text-xs font-medium">{e.count}</span>
+                </Link>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
 
       <SignInBanner />
 

@@ -74,6 +74,23 @@ export default function AboutPage() {
         </div>
       </section>
 
+      <section className="bg-cream pt-12 px-6">
+        <div className="max-w-3xl mx-auto">
+          <figure className="border-l-4 border-amber/40 pl-5 py-1">
+            <blockquote className="text-brown/80 text-lg leading-relaxed italic">
+              &ldquo;Join R&rsquo; Odom Silverstein on an illuminating journey as we dive into a text that
+              has transformed the lives of countless yidden over the last two centuries. Sefer HaTanya:
+              Clear and Concise. Podcasts will be published three times a week, each in 5 min segments
+              highlighting the main themes and takeaways of each perek. Bitachon Weekly: 7 minute chizuk
+              on Bitachon drawn from the Parsha and Moadei Hashono.&rdquo;
+            </blockquote>
+            <figcaption className="text-amber-text text-sm font-semibold mt-3">
+              From the Rabbi Odom Silverstein Podcast
+            </figcaption>
+          </figure>
+        </div>
+      </section>
+
       {about && <SeoContentBlock content={about} />}
 
       <section className="bg-cream px-6 pb-16">
