@@ -76,6 +76,15 @@ export const metadata: Metadata = {
     index: true,
     follow: true,
   },
+  // Set GOOGLE_SITE_VERIFICATION (and optionally BING_SITE_VERIFICATION) in
+  // Vercel env to verify the property in Search Console via the HTML-tag method.
+  // (DNS TXT verification in Cloudflare works too and needs no redeploy.)
+  verification: {
+    google: process.env.GOOGLE_SITE_VERIFICATION,
+    other: process.env.BING_SITE_VERIFICATION
+      ? { "msvalidate.01": process.env.BING_SITE_VERIFICATION }
+      : {},
+  },
 };
 
 export default function RootLayout({
