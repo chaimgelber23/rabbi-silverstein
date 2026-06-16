@@ -7,7 +7,7 @@ import ShiurActions from "@/components/shiurim/ShiurActions";
 
 export const revalidate = 3600;
 
-const SITE_URL = "https://rabbi-silverstein.vercel.app";
+const SITE_URL = "https://rabbiodomsilverstein.com";
 
 function fmtDate(iso: string): string {
   return new Date(iso).toLocaleDateString("en-US", {

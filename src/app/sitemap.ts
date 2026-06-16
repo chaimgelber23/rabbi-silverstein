@@ -2,7 +2,7 @@ import type { MetadataRoute } from "next";
 import { getAllSlugs, canonicalSeriesSlug } from "@/lib/seriesConfig";
 import { fetchAllShiurim } from "@/lib/shiurim";
 
-const SITE_URL = "https://rabbi-silverstein.vercel.app";
+const SITE_URL = "https://rabbiodomsilverstein.com";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date();

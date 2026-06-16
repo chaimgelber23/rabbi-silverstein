@@ -9,6 +9,6 @@ export default function robots(): MetadataRoute.Robots {
         disallow: ["/admin", "/api/", "/profile", "/my-learning"],
       },
     ],
-    sitemap: "https://rabbi-silverstein.vercel.app/sitemap.xml",
+    sitemap: "https://rabbiodomsilverstein.com/sitemap.xml",
   };
 }

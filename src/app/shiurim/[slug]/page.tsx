@@ -18,7 +18,7 @@ export async function generateStaticParams() {
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const url = `https://rabbi-silverstein.vercel.app/shiurim/${slug}`;
+  const url = `https://rabbiodomsilverstein.com/shiurim/${slug}`;
 
   const series = await getSeriesBySlugWithCustom(slug);
   if (series) {

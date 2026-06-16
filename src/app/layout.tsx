@@ -28,7 +28,7 @@ const frankRuhl = Frank_Ruhl_Libre({
   weight: ["300", "400", "700"],
 });
 
-const siteUrl = "https://rabbi-silverstein.vercel.app";
+const siteUrl = "https://rabbiodomsilverstein.com";
 const siteName = "Rabbi Odom Silverstein | Torah Shiurim";
 const siteDescription =
   "Learn Torah with Rabbi Odom Silverstein. 5 Minute Nefesh HaChaim, 5 Minute Tanya, Bitachon, Parsha, and more. Clear and concise shiurim for daily growth.";

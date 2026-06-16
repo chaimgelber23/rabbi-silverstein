@@ -1,6 +1,6 @@
 import type { Shiur } from "@/lib/types";
 
-const SITE_URL = "https://rabbi-silverstein.vercel.app";
+const SITE_URL = "https://rabbiodomsilverstein.com";
 
 interface SeriesJsonLdProps {
   slug: string;
