@@ -54,12 +54,21 @@ export default function HomeLanding({ ungrouped, groups, totalCount, allShiurim 
   // Nefesh HaChaim, Bitachon) plus each standalone series (Parsha, Yamim Tovim),
   // built from live data so anything he posts shows up automatically. The
   // catch-all "All Shiurim" (slug "other") is not a sefer to start, so skip it.
+  // Specific sub-series in FEATURED_SUBSERIES also get their own quick-start
+  // button right after their parent group (e.g. Bitachon Chabura under Bitachon).
   const startEntries = useMemo(() => {
-    const groupEntries = groups.map((g) => ({
-      slug: g.id,
-      name: g.label,
-      count: g.series.reduce((n, s) => n + s.episodeCount, 0),
-    }));
+    const FEATURED_SUBSERIES = new Set(["bitachon-chabura"]);
+    const groupEntries = groups.flatMap((g) => {
+      const group = {
+        slug: g.id,
+        name: g.label,
+        count: g.series.reduce((n, s) => n + s.episodeCount, 0),
+      };
+      const featured = g.series
+        .filter((s) => FEATURED_SUBSERIES.has(s.slug))
+        .map((s) => ({ slug: s.slug, name: s.name, count: s.episodeCount }));
+      return [group, ...featured];
+    });
     const standalone = ungrouped
       .filter((s) => s.slug !== "other")
       .map((s) => ({ slug: s.slug, name: s.name, count: s.episodeCount }));
