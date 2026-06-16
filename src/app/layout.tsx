@@ -42,6 +42,8 @@ export const metadata: Metadata = {
   description: siteDescription,
   keywords: [
     "Rabbi Odom Silverstein",
+    "Rabbi Adam Silverstein",
+    "Adam Silverstein",
     "Rabbi Silverstein",
     "Nefesh HaChaim",
     "Tanya",

@@ -36,6 +36,7 @@ const personLd = {
   "@context": "https://schema.org",
   "@type": "Person",
   name: "Rabbi Odom Silverstein",
+  alternateName: ["Rabbi Adam Silverstein", "Rabbi Adom Silverstein", "Rabbi Odem Silverstein", "Adam Silverstein"],
   jobTitle: "Torah teacher",
   description:
     "Teacher of short daily Torah audio shiurim on Tanya, Nefesh HaChaim, and Bitachon.",

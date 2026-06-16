@@ -268,6 +268,10 @@ export const SEO_CONTENT: Record<string, SeoPageContent> = {
         a: "Rabbi Odom Silverstein is the teacher behind the Rabbi Odom Silverstein Podcast, a library of short daily Torah shiurim recorded between 2021 and 2024. He teaches four series: 5-Minute Tanya, 5-Minute Nefesh HaChaim, Bitachon Weekly, and Parsha, in close to 400 episodes, each only a few minutes long and meant for everyday listening.",
       },
       {
+        q: "Is the name spelled Odom or Adam Silverstein?",
+        a: "You will see both spellings. The shiurim are published under Rabbi Odom Silverstein, and many people search for Rabbi Adam Silverstein or Adom Silverstein looking for the same teacher. They all point to the same daily shiurim on Tanya, Nefesh HaChaim, and Bitachon.",
+      },
+      {
         q: "What does Rabbi Odom Silverstein teach?",
         a: "He teaches three foundational seforim in short daily form. The 5-Minute Tanya series covers the sefer of the Alter Rebbe chapter by chapter. The 5-Minute Nefesh HaChaim series works through Rav Chaim Volozhiner's four gates. Bitachon Weekly gives about seven minutes of chizuk on trust in Hashem, drawn from the weekly Parsha and the Moadim (festivals).",
       },
