@@ -8,6 +8,7 @@ import { AudioPlayerProvider } from "@/components/shiurim/AudioPlayerProvider";
 import AudioPlayerBar from "@/components/shiurim/AudioPlayerBar";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import { SITE_URL, SITE_NAME } from "@/lib/site";
 
 const inter = Inter({
   variable: "--font-display",
@@ -28,8 +29,8 @@ const frankRuhl = Frank_Ruhl_Libre({
   weight: ["300", "400", "700"],
 });
 
-const siteUrl = "https://rabbiodomsilverstein.com";
-const siteName = "Rabbi Odom Silverstein | Torah Shiurim";
+const siteUrl = SITE_URL;
+const siteName = SITE_NAME;
 const siteDescription =
   "Learn Torah with Rabbi Odom Silverstein. 5 Minute Nefesh HaChaim, 5 Minute Tanya, Bitachon, Parsha, and more. Clear and concise shiurim for daily growth.";
 
@@ -101,7 +102,7 @@ export default function RootLayout({
               },
               potentialAction: {
                 "@type": "SearchAction",
-                target: `${siteUrl}/shiurim/{search_term_string}`,
+                target: `${siteUrl}/?q={search_term_string}`,
                 "query-input": "required name=search_term_string",
               },
             }),

@@ -1,8 +1,7 @@
 import type { MetadataRoute } from "next";
 import { getAllSlugs, canonicalSeriesSlug } from "@/lib/seriesConfig";
 import { fetchAllShiurim } from "@/lib/shiurim";
-
-const SITE_URL = "https://rabbiodomsilverstein.com";
+import { SITE_URL } from "@/lib/site";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date();
@@ -13,6 +12,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       lastModified: now,
       changeFrequency: "daily",
       priority: 1.0,
+    },
+    {
+      url: `${SITE_URL}/about`,
+      lastModified: now,
+      changeFrequency: "monthly",
+      priority: 0.7,
     },
   ];
 

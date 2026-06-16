@@ -4,10 +4,9 @@ import type { Shiur } from "@/lib/types";
 import { getShiurById, getSeriesShiurim, getGroupShiurim } from "@/lib/seriesData";
 import { getSeriesBySlugWithCustom, getGroupInfoWithCustom } from "@/lib/seriesConfigServer";
 import ShiurActions from "@/components/shiurim/ShiurActions";
+import { SITE_URL } from "@/lib/site";
 
 export const revalidate = 3600;
-
-const SITE_URL = "https://rabbiodomsilverstein.com";
 
 function fmtDate(iso: string): string {
   return new Date(iso).toLocaleDateString("en-US", {
@@ -98,9 +97,27 @@ export default async function ShiurPage({
     author: { "@type": "Person", name: "Rabbi Odom Silverstein" },
   };
 
+  const breadcrumbLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Shiurim", item: SITE_URL },
+      ...(seriesName
+        ? [{ "@type": "ListItem", position: 2, name: seriesName, item: `${SITE_URL}/shiurim/${slug}` }]
+        : []),
+      {
+        "@type": "ListItem",
+        position: seriesName ? 3 : 2,
+        name: shiur.title,
+        item: `${SITE_URL}/shiurim/${slug}/${encodeURIComponent(shiur.id)}`,
+      },
+    ],
+  };
+
   return (
     <main className="min-h-screen">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }} />
 
       <section className="bg-brown py-16 px-6">
         <div className="max-w-3xl mx-auto">

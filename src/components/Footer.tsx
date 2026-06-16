@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 
 export default function Footer() {
   return (
@@ -15,7 +16,8 @@ export default function Footer() {
         <p className="text-sm mb-6">
           5 Minute Nefesh HaChaim &bull; 5 Minute Tanya &bull; Bitachon &bull; Parsha
         </p>
-        <div className="flex justify-center gap-6 mb-6">
+        <div className="flex flex-wrap justify-center gap-6 mb-6">
+          <Link href="/about" className="hover:text-amber transition-colors text-sm">About</Link>
           <a href="https://open.spotify.com/show/1YHYBjDG0AbKzkOftmrZz1" target="_blank" rel="noopener noreferrer"
             className="hover:text-amber transition-colors text-sm">Spotify</a>
           <a href="https://listen.jewishpodcasts.fm/rabbiodomsilverstein" target="_blank" rel="noopener noreferrer"

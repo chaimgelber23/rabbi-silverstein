@@ -28,6 +28,15 @@ export default function HomeLanding({ ungrouped, groups, totalCount, allShiurim 
   const tabsRef = useRef<HTMLDivElement>(null);
   const { playShiur, playerState } = useAudioPlayer();
 
+  // Seed the search from a ?q= param so the sitelinks SearchAction works
+  // (Google's searchbox sends visitors to /?q={query}). Client-only read after
+  // mount keeps server + first client render identical (hydration-safe).
+  useEffect(() => {
+    const q = new URLSearchParams(window.location.search).get("q");
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (q) setSearchQuery(q);
+  }, []);
+
   const searchResults = useMemo(() => {
     if (!searchQuery.trim()) return null;
     const q = searchQuery.toLowerCase();

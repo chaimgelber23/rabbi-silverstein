@@ -36,6 +36,9 @@ export default function Navbar() {
             <Link href="/my-learning" className="text-white/80 hover:text-amber transition-colors text-sm font-medium">
               My Learning
             </Link>
+            <Link href="/about" className="text-white/80 hover:text-amber transition-colors text-sm font-medium">
+              About
+            </Link>
             {user && isAdmin() && (
               <Link href="/admin" className="text-amber hover:text-amber-light transition-colors text-sm font-semibold">
                 Upload
@@ -76,6 +79,9 @@ export default function Navbar() {
             </Link>
             <Link href="/my-learning" onClick={() => setMobileOpen(false)} className="block text-white/80 hover:text-amber transition-colors font-medium">
               My Learning
+            </Link>
+            <Link href="/about" onClick={() => setMobileOpen(false)} className="block text-white/80 hover:text-amber transition-colors font-medium">
+              About
             </Link>
             {user && isAdmin() && (
               <Link href="/admin" onClick={() => setMobileOpen(false)} className="block text-amber hover:text-amber-light font-semibold transition-colors">

@@ -7,6 +7,9 @@ import {
 } from "@/lib/seriesConfigServer";
 import SeriesPageClient from "@/components/shiurim/SeriesPageClient";
 import { SeriesJsonLd } from "@/components/seo/SeriesJsonLd";
+import SeoContentBlock from "@/components/seo/SeoContentBlock";
+import { getSeoContent } from "@/lib/seo/content";
+import { SITE_URL } from "@/lib/site";
 
 export const revalidate = 3600;
 
@@ -18,31 +21,32 @@ export async function generateStaticParams() {
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const url = `https://rabbiodomsilverstein.com/shiurim/${slug}`;
+  const url = `${SITE_URL}/shiurim/${slug}`;
+  const seo = getSeoContent(slug);
 
   const series = await getSeriesBySlugWithCustom(slug);
   if (series) {
-    const title = series.name;
-    const description = series.description || `Torah shiurim on ${series.name} by Rabbi Odom Silverstein.`;
+    const description = seo?.metaDescription || series.description || `Torah shiurim on ${series.name} by Rabbi Odom Silverstein.`;
+    const ogTitle = seo?.titleTag || `${series.name} | Rabbi Odom Silverstein`;
     return {
-      title,
+      title: seo ? { absolute: seo.titleTag } : series.name,
       description,
       alternates: { canonical: `/shiurim/${slug}` },
-      openGraph: { title: `${title} | Rabbi Odom Silverstein`, description, url, type: "website" },
-      twitter: { card: "summary" as const, title: `${title} | Rabbi Odom Silverstein`, description },
+      openGraph: { title: ogTitle, description, url, type: "website" },
+      twitter: { card: "summary" as const, title: ogTitle, description },
     };
   }
 
   const group = await getGroupInfoWithCustom(slug);
   if (group) {
-    const title = group.label;
-    const description = group.description || `${group.label} shiurim by Rabbi Odom Silverstein.`;
+    const description = seo?.metaDescription || group.description || `${group.label} shiurim by Rabbi Odom Silverstein.`;
+    const ogTitle = seo?.titleTag || `${group.label} | Rabbi Odom Silverstein`;
     return {
-      title,
+      title: seo ? { absolute: seo.titleTag } : group.label,
       description,
       alternates: { canonical: `/shiurim/${slug}` },
-      openGraph: { title: `${title} | Rabbi Odom Silverstein`, description, url, type: "website" },
-      twitter: { card: "summary" as const, title: `${title} | Rabbi Odom Silverstein`, description },
+      openGraph: { title: ogTitle, description, url, type: "website" },
+      twitter: { card: "summary" as const, title: ogTitle, description },
     };
   }
 
@@ -51,6 +55,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
 export default async function SeriesPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
+  const seo = getSeoContent(slug);
 
   // Check if it's a group slug (e.g., "nefesh-hachaim", "tanya", "bitachon")
   const group = await getGroupInfoWithCustom(slug);
@@ -71,6 +76,7 @@ export default async function SeriesPage({ params }: { params: Promise<{ slug: s
           shiurim={shiurim}
           navSections={[]}
         />
+        {seo && <SeoContentBlock content={seo} />}
       </>
     );
   }
@@ -101,6 +107,7 @@ export default async function SeriesPage({ params }: { params: Promise<{ slug: s
         shiurim={shiurim}
         navSections={navSections}
       />
+      {seo && <SeoContentBlock content={seo} />}
     </>
   );
 }
