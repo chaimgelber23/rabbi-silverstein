@@ -31,7 +31,10 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     return {
       title: seo ? { absolute: seo.titleTag } : series.name,
       description,
-      alternates: { canonical: `/shiurim/${slug}` },
+      alternates: {
+        canonical: `/shiurim/${slug}`,
+        types: { "application/rss+xml": [{ url: `${SITE_URL}/shiurim/${slug}/feed.xml`, title: "Podcast feed" }] },
+      },
       openGraph: { title: ogTitle, description, url, type: "website" },
       twitter: { card: "summary" as const, title: ogTitle, description },
     };
@@ -44,7 +47,10 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     return {
       title: seo ? { absolute: seo.titleTag } : group.label,
       description,
-      alternates: { canonical: `/shiurim/${slug}` },
+      alternates: {
+        canonical: `/shiurim/${slug}`,
+        types: { "application/rss+xml": [{ url: `${SITE_URL}/shiurim/${slug}/feed.xml`, title: "Podcast feed" }] },
+      },
       openGraph: { title: ogTitle, description, url, type: "website" },
       twitter: { card: "summary" as const, title: ogTitle, description },
     };

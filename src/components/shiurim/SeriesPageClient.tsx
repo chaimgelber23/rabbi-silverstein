@@ -7,6 +7,7 @@ import { useAudioPlayer } from "./AudioPlayerProvider";
 import { getRecommendedShiur, getNextShiur } from "@/lib/progress";
 import SeriesHero from "./SeriesHero";
 import ShiurCard from "./ShiurCard";
+import SubscribeButton from "./SubscribeButton";
 import SignInBanner from "../SignInBanner";
 
 const fadeUp = { hidden: { opacity: 0, y: 30 }, visible: { opacity: 1, y: 0, transition: { duration: 0.5 } } };
@@ -82,6 +83,7 @@ export default function SeriesPageClient({ series, shiurim, navSections }: {
               className={`px-5 py-2.5 rounded-xl text-sm font-semibold transition-all ${sortOrder === "newest" && !selectedSection ? "bg-brown text-white shadow-md" : "bg-white border border-brown/15 text-brown/70 hover:border-brown/30"}`}>
               Latest Shiur
             </button>
+            <SubscribeButton slug={series.slug} />
           </div>
 
           {series.navType === "perek" && navSections.length > 0 && (
